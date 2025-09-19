@@ -137,11 +137,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     padding:20px; 
     margin-top:20px; 
 }
+
+.booking-type-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+}
+
+.booking-type-card:hover {
+    border-color: var(--salon-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--salon-shadow);
+}
+
+.booking-type-card.selected {
+    border-color: var(--salon-primary);
+    background: var(--salon-light);
+}
+
+.payment-info-card, .payment-methods-card {
+    border: none;
+    box-shadow: var(--salon-shadow);
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.payment-method:last-child {
+    border-bottom: none;
+}
+
+.payment-method i {
+    margin-right: 0.5rem;
+    width: 20px;
+}
+
+.review-card {
+    border: none;
+    box-shadow: var(--salon-shadow);
+}
+
+.review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-label {
+    font-weight: 600;
+    color: #666;
+    display: flex;
+    align-items: center;
+}
+
+.review-label i {
+    margin-right: 0.5rem;
+}
+
+.review-value {
+    font-weight: 500;
+    text-align: right;
+}
+
+.step-header {
+    text-align: center;
+    border-bottom: 2px solid var(--salon-light);
+    padding-bottom: 1rem;
+}
 </style>
   <script>
+    function selectBookingType(type) {
+      // Update hidden select
+      document.getElementById("booking_type").value = type;
+      
+      // Update card selection visual
+      document.querySelectorAll('.booking-type-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      // Toggle location field
+      toggleLocation();
+    }
+    
     function toggleLocation() {
       const type = document.getElementById("booking_type").value;
-      document.getElementById("locationField").style.display = (type === "home") ? "block" : "none";
+      const locationField = document.getElementById("locationField");
+      if (type === "home") {
+        locationField.style.display = "block";
+        document.getElementById("location_address").required = true;
+      } else {
+        locationField.style.display = "none";
+        document.getElementById("location_address").required = false;
+      }
     }
 
     let bookedSlots = [];
@@ -256,75 +354,289 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <form method="post" enctype="multipart/form-data" id="bookingForm">
+                    
+                    <!-- Step 1: Service Selection -->
+                    <div class="step active" id="step1">
+                        <div class="step-header mb-4">
+                            <h4 class="text-salon">
+                                <i class="bi bi-scissors"></i> Choose Your Service
+                            </h4>
+                            <p class="text-muted">Select the service you'd like to book</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="service" class="form-label fw-bold">
+                                <i class="bi bi-list-ul"></i> Select Service *
+                            </label>
+                            <select class="form-select form-select-lg" name="service_id" id="service" required onchange="updateDownPayment(); loadBookedTimes();">
+                                <option value="">-- Choose a Service --</option>
+                                <?php
+                                $services = pdo()->query("SELECT * FROM services ORDER BY name")->fetchAll();
+                                foreach ($services as $s):
+                                ?>
+                                    <option value="<?= $s['id'] ?>" data-price="<?= $s['price'] ?>" data-duration="<?= $s['duration_minutes'] ?>">
+                                        <?= htmlspecialchars($s['name']) ?> - ₱<?= number_format($s['price'],2) ?> (<?= $s['duration_minutes'] ?> mins)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-      <!-- Step 1 -->
-      <div class="step active" id="step1">
-        <label>Choose Service:</label>
-        <select name="service_id" id="service" required onchange="updateDownPayment(); loadBookedTimes();">
-          <option value="">-- Select Service --</option>
-          <?php
-          $services = pdo()->query("SELECT * FROM services")->fetchAll();
-          foreach ($services as $s):
-          ?>
-            <option value="<?= $s['id'] ?>" data-price="<?= $s['price'] ?>"><?= htmlspecialchars($s['name']) ?> (₱<?= number_format($s['price'],2) ?>)</option>
-          <?php endforeach; ?>
-        </select>
+                        <div class="mb-4">
+                            <label for="booking_type" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt"></i> Booking Type *
+                            </label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card booking-type-card" onclick="selectBookingType('salon')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-building fs-1 text-salon mb-2"></i>
+                                            <h6>Salon Visit</h6>
+                                            <p class="text-muted small mb-0">Visit our beautiful salon</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card booking-type-card" onclick="selectBookingType('home')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-house fs-1 text-salon mb-2"></i>
+                                            <h6>Home Service</h6>
+                                            <p class="text-muted small mb-0">We come to you</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <select name="booking_type" id="booking_type" class="d-none" onchange="toggleLocation()" required>
+                                <option value="salon">Salon Appointment</option>
+                                <option value="home">Home Service</option>
+                            </select>
+                        </div>
 
-        <label>Booking Type:</label>
-        <select name="booking_type" id="booking_type" onchange="toggleLocation()" required>
-          <option value="salon">Salon Appointment</option>
-          <option value="home">Home Service</option>
-        </select>
+                        <div id="locationField" class="mb-4" style="display:none;">
+                            <label for="location_address" class="form-label fw-bold">
+                                <i class="bi bi-map"></i> Home Address *
+                            </label>
+                            <textarea class="form-control" name="location_address" id="location_address" rows="3" placeholder="Enter your complete home address..."></textarea>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                Transport fee: ₱100 (Pateros area) | ₱200 (Other areas)
+                            </div>
+                        </div>
 
-        <div id="locationField" style="display:none;">
-          <label>Home Address:</label>
-          <textarea name="location_address" rows="3"></textarea>
-        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(2)">
+                                Next Step <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
 
-        <button type="button" onclick="nextStep(2)">Next</button>
-      </div>
+                    <!-- Step 2: Date & Time -->
+                    <div class="step" id="step2">
+                        <div class="step-header mb-4">
+                            <h4 class="text-salon">
+                                <i class="bi bi-calendar"></i> Select Date & Time
+                            </h4>
+                            <p class="text-muted">Choose your preferred appointment schedule</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="date" class="form-label fw-bold">
+                                        <i class="bi bi-calendar-date"></i> Appointment Date *
+                                    </label>
+                                    <input type="date" class="form-control form-control-lg" name="date" id="date" required min="<?= date('Y-m-d') ?>" onchange="loadBookedTimes()">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="time" class="form-label fw-bold">
+                                        <i class="bi bi-clock"></i> Appointment Time *
+                                    </label>
+                                    <input type="time" class="form-control form-control-lg" name="time" id="time" required>
+                                    <div id="timeNotice" class="alert alert-warning mt-2" style="display:none;">
+                                        <i class="bi bi-exclamation-triangle"></i> This time slot is already booked. Please choose another time.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="style" class="form-label fw-bold">
+                                <i class="bi bi-palette"></i> Preferred Style <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input type="text" class="form-control" name="style" id="style" placeholder="e.g., Bob Cut, Balayage, Long Layers...">
+                            <div class="form-text">
+                                <i class="bi bi-lightbulb"></i> 
+                                Describe your desired style or let our professionals recommend the best option for you.
+                            </div>
+                        </div>
 
-      <!-- Step 2 -->
-      <div class="step" id="step2">
-        <label>Date:</label>
-        <input type="date" name="date" id="date" required min="<?= date('Y-m-d') ?>" onchange="loadBookedTimes()">
-        
-        <label>Time:</label>
-        <input type="time" name="time" id="time" required>
-        <small id="timeNotice" style="color:red;display:none;">⚠️ This time is already booked.</small>
-        
-        <label>Preferred Style (optional):</label>
-        <input type="text" name="style" id="style" placeholder="e.g. Bob Cut">
-        
-        <button type="button" onclick="prevStep(1)">Back</button>
-        <button type="button" onclick="nextStep(3)">Next</button>
-      </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(1)">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(3)">
+                                Next Step <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
 
-      <!-- Step 3 -->
-      <div class="step" id="step3">
-        <p><strong>💰 Down Payment:</strong> <span id="downPayment">₱0.00</span></p>
-        <p><strong>🏦 Pay via:</strong> GCash (0917-123-4567), PayMaya, or BDO</p>
-        <label>Upload Proof of Payment (optional):</label>
-        <input type="file" name="payment_proof" id="payment_proof" accept="image/*">
-        <button type="button" onclick="prevStep(2)">Back</button>
-        <button type="button" onclick="nextStep(4)">Next</button>
-      </div>
+                    <!-- Step 3: Payment -->
+                    <div class="step" id="step3">
+                        <div class="step-header mb-4">
+                            <h4 class="text-salon">
+                                <i class="bi bi-credit-card"></i> Payment Information
+                            </h4>
+                            <p class="text-muted">Secure your booking with a down payment</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card payment-info-card mb-4">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-cash-stack text-success"></i> Down Payment Required
+                                        </h6>
+                                        <div class="payment-amount">
+                                            <span id="downPayment" class="fs-4 fw-bold text-success">₱0.00</span>
+                                        </div>
+                                        <small class="text-muted">30% of service fee + transport (if applicable)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card payment-methods-card mb-4">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-wallet2 text-info"></i> Payment Methods
+                                        </h6>
+                                        <div class="payment-methods">
+                                            <div class="payment-method">
+                                                <i class="bi bi-phone text-primary"></i>
+                                                <strong>GCash:</strong> 0917-123-4567
+                                            </div>
+                                            <div class="payment-method">
+                                                <i class="bi bi-credit-card text-warning"></i>
+                                                <strong>PayMaya:</strong> Available
+                                            </div>
+                                            <div class="payment-method">
+                                                <i class="bi bi-bank text-success"></i>
+                                                <strong>BDO:</strong> Bank Transfer
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="payment_proof" class="form-label fw-bold">
+                                <i class="bi bi-image"></i> Upload Proof of Payment <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input type="file" class="form-control" name="payment_proof" id="payment_proof" accept="image/*">
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                Upload a screenshot or photo of your payment receipt. Accepted formats: JPG, PNG, GIF
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(2)">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(4)">
+                                Review Booking <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
 
-      <!-- Step 4 -->
-      <div class="step" id="step4">
-        <h3>Review Your Booking</h3>
-        <div class="review-box">
-          <p>📌 Service: <span id="reviewService"></span></p>
-          <p>📅 Date: <span id="reviewDate"></span></p>
-          <p>⏰ Time: <span id="reviewTime"></span></p>
-          <p>✂️ Style: <span id="reviewStyle"></span></p>
-          <p>🏠 Booking Type: <span id="reviewType"></span></p>
-          <p>📍 Address: <span id="reviewAddress"></span></p>
-          <p>💰 Down Payment: <span id="reviewDownPayment"></span></p>
-        </div>
-        <button type="button" onclick="prevStep(3)">Back</button>
-        <button type="submit">Confirm Booking</button>
-      </div>
+                    <!-- Step 4: Review & Confirm -->
+                    <div class="step" id="step4">
+                        <div class="step-header mb-4">
+                            <h4 class="text-salon">
+                                <i class="bi bi-check-circle"></i> Review Your Booking
+                            </h4>
+                            <p class="text-muted">Please review your appointment details before confirming</p>
+                        </div>
+                        
+                        <div class="card review-card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-clipboard-check"></i> Booking Summary
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-scissors text-salon"></i> Service
+                                            </div>
+                                            <div class="review-value" id="reviewService">-</div>
+                                        </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-calendar text-salon"></i> Date
+                                            </div>
+                                            <div class="review-value" id="reviewDate">-</div>
+                                        </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-clock text-salon"></i> Time
+                                            </div>
+                                            <div class="review-value" id="reviewTime">-</div>
+                                        </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-palette text-salon"></i> Style
+                                            </div>
+                                            <div class="review-value" id="reviewStyle">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-geo-alt text-salon"></i> Type
+                                            </div>
+                                            <div class="review-value" id="reviewType">-</div>
+                                        </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-map text-salon"></i> Address
+                                            </div>
+                                            <div class="review-value" id="reviewAddress">-</div>
+                                        </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-cash text-salon"></i> Down Payment
+                                            </div>
+                                            <div class="review-value fw-bold text-success" id="reviewDownPayment">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>What happens next?</strong><br>
+                            After confirming your booking, you'll receive a booking reference number. Our admin will verify your payment and confirm your appointment within 24 hours.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(3)">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-salon btn-lg">
+                                <i class="bi bi-check-circle"></i> Confirm Booking
+                            </button>
+                        </div>
+                    </div>
     </form>
     <?php endif; ?>
         </div>

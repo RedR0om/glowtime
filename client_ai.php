@@ -1,143 +1,434 @@
 <?php
 require_once 'inc/bootstrap.php';
-
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'client') {
     header('Location: login.php');
     exit;
 }
 
-// Initialize chat session
-if (!isset($_SESSION['chat_history'])) $_SESSION['chat_history'] = [];
-if (!isset($_SESSION['conversation_state'])) $_SESSION['conversation_state'] = 'start';
+// Store user name for display
+$_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
 
-$suggested_messages = ["Services", "Prices", "Hairstyle tips", "Haircare advice"];
-$response = "";
+$response = '';
+$error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $message = strtolower(trim($_POST['message']));
-    $_SESSION['chat_history'][] = ["role" => "user", "text" => htmlspecialchars($message)];
-
-    // Conversation flow
-    switch($_SESSION['conversation_state']) {
-        case 'start':
-            if (strpos($message, 'service') !== false || strpos($message, 'services') !== false) {
-                $response = "We offer Haircuts, Hair Coloring, and Hair Spa treatments. Which one would you like to know more about?";
-                $_SESSION['conversation_state'] = 'service_selected';
-            } elseif (strpos($message, 'price') !== false || strpos($message, 'cost') !== false) {
-                $response = "Our prices are:\n- Haircut: ₱300-₱500\n- Hair Coloring: ₱800-₱2000\n- Hair Spa: ₱500-₱1000\nWhat service price are you curious about?";
-                $_SESSION['conversation_state'] = 'price_inquiry';
-            } elseif (strpos($message, 'tip') !== false || strpos($message, 'hairstyle') !== false || strpos($message, 'advice') !== false) {
-                $response = "Sure! I can suggest hairstyles or haircare tips. What kind of advice are you looking for?";
-                $_SESSION['conversation_state'] = 'advice';
-            } else {
-                $response = "👋 Hi! I can help you with Services, Prices, Hairstyle tips, or Haircare advice. What would you like to know?";
+// Handle AI request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
+    $message = trim($_POST['message']);
+    
+    if (!empty($message)) {
+        // Get user's booking history for context
+        $stmt = pdo()->prepare("
+            SELECT s.name as service_name, a.style, a.start_at
+            FROM appointments a 
+            JOIN services s ON s.id = a.service_id 
+            WHERE a.client_id = ? AND a.status IN ('confirmed', 'completed')
+            ORDER BY a.start_at DESC 
+            LIMIT 5
+        ");
+        $stmt->execute([$_SESSION['user_id']]);
+        $history = $stmt->fetchAll();
+        
+        // Create context for AI
+        $context = "User booking history: ";
+        if ($history) {
+            $historyItems = [];
+            foreach ($history as $h) {
+                $historyItems[] = $h['service_name'] . ($h['style'] ? " ({$h['style']})" : '');
             }
-            break;
-
-        case 'service_selected':
-            if (strpos($message, 'haircut') !== false) {
-                $response = "Haircuts help shape your look! Options: Layered Cut, Bob, Undercut. Want hairstyle tips for your haircut?";
-                $_SESSION['conversation_state'] = 'advice';
-            } elseif (strpos($message, 'color') !== false || strpos($message, 'coloring') !== false) {
-                $response = "Hair coloring can be fun! Trendy colors: Balayage, Pastel tones. Want haircare tips for colored hair?";
-                $_SESSION['conversation_state'] = 'advice';
-            } elseif (strpos($message, 'spa') !== false) {
-                $response = "Hair Spa rejuvenates your scalp and hair. Regular treatments keep hair healthy. Want more haircare tips?";
-                $_SESSION['conversation_state'] = 'advice';
-            } else {
-                $response = "Hmm, I didn’t get that. You can ask about Haircut, Coloring, or Spa.";
-            }
-            break;
-
-        case 'price_inquiry':
-            if (strpos($message, 'haircut') !== false) {
-                $response = "Haircuts cost around ₱300-₱500 depending on style and length.";
-            } elseif (strpos($message, 'color') !== false || strpos($message, 'coloring') !== false) {
-                $response = "Hair Coloring ranges from ₱800-₱2000 depending on technique and hair length.";
-            } elseif (strpos($message, 'spa') !== false) {
-                $response = "Hair Spa treatments cost ₱500-₱1000 depending on package.";
-            } else {
-                $response = "You can ask about the prices of Haircut, Coloring, or Spa.";
-            }
-            $_SESSION['conversation_state'] = 'start';
-            break;
-
-        case 'advice':
-            $tips = [
-                "💡 Tip: A layered bob adds volume to your hair.",
-                "💡 Tip: Use sulfate-free shampoo to protect hair color.",
-                "💡 Tip: Regular hair spa keeps scalp healthy and nourished.",
-                "💡 Tip: Try deep conditioning once a week for shiny hair."
-            ];
-            $response = $tips[array_rand($tips)] . " Would you like another tip or advice on haircare?";
-            $_SESSION['conversation_state'] = 'start';
-            break;
-
-        default:
-            $response = "🤔 Sorry, I didn’t understand that. Try asking about Services, Prices, or Hairstyle tips.";
-            $_SESSION['conversation_state'] = 'start';
-            break;
+            $context .= implode(', ', $historyItems);
+        } else {
+            $context .= "No previous bookings";
+        }
+        
+        // Simple rule-based responses (you can integrate with OpenAI API here)
+        $response = generateAIResponse($message, $context);
+    } else {
+        $error = "Please enter a message.";
     }
-
-    $_SESSION['chat_history'][] = ["role" => "bot", "text" => nl2br($response)];
 }
+
+function generateAIResponse($message, $context) {
+    $message = strtolower($message);
+    
+    // Hair style recommendations
+    if (strpos($message, 'hair') !== false || strpos($message, 'style') !== false || strpos($message, 'cut') !== false) {
+        $responses = [
+            "Based on current trends, I'd recommend trying a layered bob cut - it's versatile and flattering on most face shapes!",
+            "Have you considered a balayage? It adds natural-looking highlights that can brighten your overall look.",
+            "A pixie cut might be perfect if you're looking for something low-maintenance yet stylish.",
+            "Long layers with face-framing pieces are very popular right now and work well with most hair textures."
+        ];
+        return $responses[array_rand($responses)];
+    }
+    
+    // Color recommendations
+    if (strpos($message, 'color') !== false || strpos($message, 'highlight') !== false) {
+        $responses = [
+            "For a natural look, try honey blonde highlights or caramel lowlights - they complement most skin tones.",
+            "Balayage is a great technique for adding dimension without harsh lines. Consider warm tones for a sun-kissed effect.",
+            "If you want something bold, consider rose gold or copper tones - they're very trendy right now!",
+            "Ash tones are perfect if you prefer cooler colors - they can make your eyes pop!"
+        ];
+        return $responses[array_rand($responses)];
+    }
+    
+    // Skin care
+    if (strpos($message, 'skin') !== false || strpos($message, 'facial') !== false) {
+        $responses = [
+            "For healthy skin, I recommend our hydrating facial treatment followed by a good skincare routine at home.",
+            "Consider a deep cleansing facial if you have oily or acne-prone skin - it can work wonders!",
+            "Anti-aging facials with vitamin C are great for maintaining youthful, glowing skin.",
+            "Don't forget daily SPF protection - it's the best anti-aging treatment you can use!"
+        ];
+        return $responses[array_rand($responses)];
+    }
+    
+    // Nail care
+    if (strpos($message, 'nail') !== false || strpos($message, 'manicure') !== false || strpos($message, 'pedicure') !== false) {
+        $responses = [
+            "For long-lasting nails, try gel polish - it can last up to 2-3 weeks without chipping!",
+            "French manicures are timeless and professional-looking for any occasion.",
+            "Consider nail art with subtle designs - it's a fun way to express your personality!",
+            "Regular cuticle care and moisturizing are key to healthy, beautiful nails."
+        ];
+        return $responses[array_rand($responses)];
+    }
+    
+    // Booking related
+    if (strpos($message, 'book') !== false || strpos($message, 'appointment') !== false) {
+        return "I'd be happy to help you book an appointment! You can use our online booking system to choose your preferred service, date, and time. Would you like me to guide you through the process?";
+    }
+    
+    // General greeting/help
+    if (strpos($message, 'hello') !== false || strpos($message, 'hi') !== false || strpos($message, 'help') !== false) {
+        return "Hello! I'm your AI beauty assistant. I can help you with style recommendations, answer questions about our services, or guide you through booking an appointment. What would you like to know?";
+    }
+    
+    // Default response
+    return "That's an interesting question! While I'd love to give you personalized advice, I recommend consulting with one of our professional stylists who can assess your specific needs. Would you like me to help you book a consultation?";
+}
+
+include 'inc/header_sidebar.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>AI Salon Assistant</title>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 text-salon mb-0">
+            <i class="bi bi-robot"></i> AI Beauty Assistant
+        </h1>
+        <p class="text-muted mb-0">Get personalized beauty recommendations and advice</p>
+    </div>
+    <div>
+        <a href="client_dashboard.php" class="btn btn-outline-salon me-2">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="client_book.php" class="btn btn-salon">
+            <i class="bi bi-calendar-plus"></i> Book Service
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Chat Interface -->
+    <div class="col-lg-8">
+        <div class="card chat-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-dots"></i> Chat with AI Assistant
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Chat Messages -->
+                <div class="chat-container mb-4" id="chatContainer">
+                    <!-- Welcome Message -->
+                    <div class="chat-message ai-message">
+                        <div class="message-avatar">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                Hello <?= htmlspecialchars($_SESSION['user_name']) ?>! 👋 I'm your AI beauty assistant. I can help you with:
+                                <ul class="mt-2 mb-0">
+                                    <li>Hair style and color recommendations</li>
+                                    <li>Skincare advice</li>
+                                    <li>Nail care tips</li>
+                                    <li>Booking appointments</li>
+                                </ul>
+                                What would you like to know today?
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Display conversation -->
+                    <?php if (isset($_POST['message']) && !empty($_POST['message'])): ?>
+                        <!-- User Message -->
+                        <div class="chat-message user-message">
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    <?= htmlspecialchars($_POST['message']) ?>
+                                </div>
+                            </div>
+                            <div class="message-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- AI Response -->
+                        <?php if ($response): ?>
+                            <div class="chat-message ai-message">
+                                <div class="message-avatar">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        <?= htmlspecialchars($response) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Chat Input -->
+                <form method="post" class="chat-form">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="message" placeholder="Ask me anything about beauty and salon services..." required>
+                        <button type="submit" class="btn btn-salon">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </form>
+                
+                <?php if ($error): ?>
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Tips -->
+    <div class="col-lg-4">
+        <!-- Quick Questions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Questions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What hair style would suit my face shape?">
+                        What hair style suits me?
+                    </button>
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What hair color would look good on me?">
+                        Recommend hair color
+                    </button>
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What skincare routine should I follow?">
+                        Skincare advice
+                    </button>
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="How do I maintain healthy nails?">
+                        Nail care tips
+                    </button>
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="How do I book an appointment?">
+                        How to book appointment?
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Beauty Tips -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightbulb"></i> Daily Beauty Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="tip-item mb-3">
+                    <div class="tip-icon">
+                        <i class="bi bi-droplet text-info"></i>
+                    </div>
+                    <div class="tip-content">
+                        <strong>Hydration</strong>
+                        <p class="small text-muted mb-0">Drink at least 8 glasses of water daily for healthy, glowing skin.</p>
+                    </div>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <div class="tip-icon">
+                        <i class="bi bi-sun text-warning"></i>
+                    </div>
+                    <div class="tip-content">
+                        <strong>Sun Protection</strong>
+                        <p class="small text-muted mb-0">Always use SPF 30+ sunscreen, even on cloudy days.</p>
+                    </div>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <div class="tip-icon">
+                        <i class="bi bi-moon text-primary"></i>
+                    </div>
+                    <div class="tip-content">
+                        <strong>Beauty Sleep</strong>
+                        <p class="small text-muted mb-0">Get 7-8 hours of sleep for natural skin regeneration.</p>
+                    </div>
+                </div>
+                
+                <div class="tip-item">
+                    <div class="tip-icon">
+                        <i class="bi bi-heart text-danger"></i>
+                    </div>
+                    <div class="tip-content">
+                        <strong>Self Care</strong>
+                        <p class="small text-muted mb-0">Take time for yourself - book a relaxing spa treatment!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Services Reminder -->
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-heart fs-1 text-salon mb-3"></i>
+                <h6>Ready for a makeover?</h6>
+                <p class="text-muted small">Book your next appointment and let our professionals bring your vision to life!</p>
+                <a href="client_book.php" class="btn btn-salon btn-sm">
+                    <i class="bi bi-calendar-plus"></i> Book Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-body { font-family: "Segoe UI", sans-serif; background: #faf5ff; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.chat-container { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
-h1 { color: #ec4899; text-align: center; margin: 0 0 15px; font-size: 1.6rem; font-weight: 700; }
-.chat-box { flex: 1; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
-.bubble { max-width: 75%; padding: 12px 16px; border-radius: 16px; white-space: pre-line; word-wrap: break-word; line-height: 1.4; font-size: 0.95rem; }
-.user { background: #ec4899; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-.bot { background: #fce7f3; color: #6b21a8; align-self: flex-start; border-bottom-left-radius: 4px; }
-form { display: flex; gap: 10px; }
-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; }
-input:focus { border-color: #ec4899; outline: none; }
-button { padding: 12px 20px; background: #a21caf; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; }
-button:hover { background: #7e22ce; }
-.suggestions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-.suggestion { background: #f3e8ff; color: #6b21a8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
-.suggestion:hover { background: #e9d5ff; }
+.chat-card {
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 450px;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.chat-message {
+    display: flex;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+}
+
+.chat-message.ai-message {
+    justify-content: flex-start;
+}
+
+.chat-message.user-message {
+    justify-content: flex-end;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.ai-message .message-avatar {
+    background: linear-gradient(45deg, var(--salon-primary), var(--salon-primary-dark));
+    color: white;
+    margin-right: 0.75rem;
+}
+
+.user-message .message-avatar {
+    background: #007bff;
+    color: white;
+    margin-left: 0.75rem;
+}
+
+.message-bubble {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.ai-message .message-bubble {
+    border-bottom-left-radius: 4px;
+}
+
+.user-message .message-bubble {
+    background: var(--salon-primary);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+}
+
+.tip-icon {
+    width: 30px;
+    flex-shrink: 0;
+    text-align: center;
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.tip-content {
+    flex: 1;
+}
+
+.chat-form {
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    .message-bubble {
+        max-width: 250px;
+    }
+    
+    .chat-card {
+        height: 500px;
+    }
+    
+    .chat-container {
+        max-height: 350px;
+    }
+}
 </style>
-</head>
-<body>
-<div class="chat-container">
-<h1>🤖 AI Salon Assistant</h1>
-<div class="chat-box" id="chatBox">
-    <?php if (!empty($_SESSION['chat_history'])): ?>
-        <?php foreach ($_SESSION['chat_history'] as $chat): ?>
-            <div class="bubble <?= $chat['role'] ?>"><?= $chat['text'] ?></div>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <div class="bubble bot">👋 Hi! I can help you with Services, Prices, Hairstyle tips, or Haircare advice. Try clicking one below.</div>
-    <?php endif; ?>
-</div>
-<form method="post" id="chatForm">
-    <input type="text" name="message" placeholder="Type your message..." required autocomplete="off">
-    <button type="submit">Send</button>
-</form>
-<div class="suggestions" id="suggestions">
-    <?php foreach($suggested_messages as $msg): ?>
-        <div class="suggestion" onclick="sendSuggestion('<?= $msg ?>')"><?= $msg ?></div>
-    <?php endforeach; ?>
-</div>
-</div>
 
 <script>
-const chatBox = document.getElementById("chatBox");
-chatBox.scrollTop = chatBox.scrollHeight;
+// Quick question buttons
+document.querySelectorAll('.quick-question').forEach(button => {
+    button.addEventListener('click', function() {
+        const question = this.getAttribute('data-question');
+        document.querySelector('input[name="message"]').value = question;
+        document.querySelector('.chat-form').submit();
+    });
+});
 
-function sendSuggestion(msg){
-    const input = document.querySelector('input[name="message"]');
-    input.value = msg;
-    document.getElementById('chatForm').submit();
+// Auto-scroll chat container to bottom
+function scrollToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
 }
+
+// Scroll to bottom when page loads
+document.addEventListener('DOMContentLoaded', scrollToBottom);
 </script>
-</body>
-</html>
+
+<?php include 'inc/footer_sidebar.php'; ?>

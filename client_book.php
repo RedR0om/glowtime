@@ -5,6 +5,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'client') {
     exit;
 }
 
+// Store user name for display
+$_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
+
 $success = $error = "";
 
 // Handle submission
@@ -100,31 +103,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Book Appointment</title>
-  <style>
-    body { font-family:"Segoe UI",sans-serif; background:#faf5ff; margin:0; padding:20px; }
-    h1 { text-align:center; color:#a21caf; margin-bottom:25px; }
-    .container { max-width:800px; margin:0 auto; background:white; border-radius:12px; padding:25px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-    .msg { padding:12px; border-radius:8px; margin-bottom:15px; text-align:center; }
-    .success { background:#d1fae5; color:#065f46; }
-    .error { background:#fee2e2; color:#991b1b; }
-    .step { display:none; }
-    .step.active { display:block; }
-    label { font-weight:bold; display:block; margin-top:10px; }
-    input, select, textarea { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:8px; }
-    button { margin-top:20px; padding:12px; background:#ec4899; color:white; font-weight:bold; border:none; border-radius:10px; cursor:pointer; width:100%; transition:0.3s; }
-    button:hover { background:#db2777; }
-    .step-indicator { text-align:center; margin-bottom:20px; }
-    .step-indicator span { display:inline-block; padding:10px 15px; border-radius:50%; background:#f3e8ff; margin:0 5px; font-weight:bold; }
-    .step-indicator .active { background:#a21caf; color:white; }
-    .review-box { background:#fce7f3; padding:15px; border-radius:10px; margin-top:15px; }
-    .review-box p { margin:8px 0; font-weight:bold; }
-    small { display:block; margin-top:5px; }
-  </style>
+<?php include 'inc/header_sidebar.php'; ?>
+
+<style>
+.step { display:none; }
+.step.active { display:block; }
+.step-indicator { text-align:center; margin-bottom:20px; }
+.step-indicator .step-circle { 
+    display:inline-block; 
+    width: 40px; 
+    height: 40px; 
+    line-height: 40px; 
+    border-radius:50%; 
+    background:#f8f9fa; 
+    margin:0 10px; 
+    font-weight:bold;
+    border: 2px solid #dee2e6;
+}
+.step-indicator .step-circle.active { 
+    background: var(--salon-primary); 
+    color:white; 
+    border-color: var(--salon-primary);
+}
+.step-indicator .step-circle.completed { 
+    background: #198754; 
+    color:white; 
+    border-color: #198754;
+}
+.review-box { 
+    background: var(--salon-light); 
+    border: 2px solid var(--salon-primary); 
+    border-radius:12px; 
+    padding:20px; 
+    margin-top:20px; 
+}
+</style>
   <script>
     function toggleLocation() {
       const type = document.getElementById("booking_type").value;
@@ -200,24 +213,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
   </script>
-</head>
-<body>
-  <h1>📅 Secure Booking</h1>
-  <div class="container">
-    <?php if ($success): ?>
-      <p class="msg success"><?= $success ?></p>
-    <?php elseif ($error): ?>
-      <p class="msg error"><?= $error ?></p>
-    <?php endif; ?>
 
-    <?php if (!$success): ?>
-    <form method="post" enctype="multipart/form-data" id="bookingForm">
-      <div class="step-indicator">
-        <span id="indicator-1" class="active">1</span>
-        <span id="indicator-2">2</span>
-        <span id="indicator-3">3</span>
-        <span id="indicator-4">4</span>
-      </div>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 text-salon mb-0">
+            <i class="bi bi-calendar-plus"></i> Book Appointment
+        </h1>
+        <p class="text-muted mb-0">Schedule your salon visit in 4 easy steps</p>
+    </div>
+    <div>
+        <a href="client_dashboard.php" class="btn btn-outline-salon">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Alerts -->
+        <?php if ($success): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <?= $success ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php elseif ($error): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <?= $error ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$success): ?>
+        <div class="card">
+            <div class="card-body">
+                <!-- Step Indicator -->
+                <div class="step-indicator mb-4">
+                    <span id="indicator-1" class="step-circle active">1</span>
+                    <span id="indicator-2" class="step-circle">2</span>
+                    <span id="indicator-3" class="step-circle">3</span>
+                    <span id="indicator-4" class="step-circle">4</span>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="bookingForm">
 
       <!-- Step 1 -->
       <div class="step active" id="step1">
@@ -289,6 +327,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </form>
     <?php endif; ?>
-  </div>
-</body>
-</html>
+        </div>
+    </div>
+</div>
+
+<?php include 'inc/footer_sidebar.php'; ?>

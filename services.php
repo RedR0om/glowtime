@@ -190,180 +190,252 @@ $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $success = get_flash('success');
 $error = get_flash('error');
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin — Manage Services</title>
-<style>
-  :root{--purple:#a21caf;--muted:#f3e8ff}
-  body{font-family:Inter, "Segoe UI",system-ui,Arial; background:#faf5ff; margin:0; padding:18px; color:#111}
-  header{max-width:1200px;margin:0 auto 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  h1{color:var(--purple);margin:0}
-  .controls{display:flex;gap:8px;align-items:center}
-  .search {padding:8px 10px;border-radius:8px;border:1px solid #ddd}
-  .select {padding:8px;border-radius:8px;border:1px solid #ddd}
-  .btn-add{background:var(--purple);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
-  .notice{max-width:1200px;margin:12px auto;padding:12px;border-radius:10px;font-weight:700}
-  .success{background:#d1fae5;color:#065f46}
-  .error{background:#fee2e2;color:#991b1b}
+<?php include 'inc/header_sidebar.php'; ?>
 
-  .grid-wrap{max-width:1200px;margin:18px auto}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-  .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.06);display:flex;flex-direction:column}
-  .thumb{height:140px;background:#eee url('images/default.jpg') center/cover no-repeat}
-  .card-body{padding:12px;display:flex;flex-direction:column;gap:8px}
-  .title{font-weight:800;color:var(--purple);font-size:16px}
-  .meta{color:#444;font-size:14px}
-  .small{font-size:13px;color:#666}
-  .card-actions{display:flex;gap:8px;margin-top:auto}
-  .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-  .btn-edit{background:#ec4899;color:#fff}
-  .btn-delete{background:#ef4444;color:#fff}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 text-salon mb-0">
+            <i class="bi bi-scissors"></i> Manage Services
+        </h1>
+        <p class="text-muted mb-0">Add, edit, and manage salon services</p>
+    </div>
+    <div>
+        <a href="admin_dashboard.php" class="btn btn-outline-salon me-2">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-salon" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Add Service
+        </button>
+    </div>
+</div>
 
-  /* modal */
-  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:18px;z-index:40}
-  .modal.is-open{display:flex}
-  .modal-panel{background:#fff;border-radius:12px;padding:18px;max-width:540px;width:100%;box-shadow:0 12px 36px rgba(0,0,0,0.18)}
-  label{display:block;font-weight:700;margin-top:10px}
-  input[type="text"], input[type="number"], input[type="file"]{width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:6px}
-  .modal-actions{display:flex;gap:8px;margin-top:12px}
-  .btn-cancel{background:#f3f4f6;border-radius:8px;padding:8px 10px;border:1px solid #ddd}
-  .muted{color:#666;font-size:13px}
-  .pagination{display:flex;gap:8px;align-items:center;margin-top:12px}
-  .page-btn{padding:6px 9px;border-radius:8px;background:#fff;border:1px solid #ddd;cursor:pointer}
-</style>
-<script>
-  function openModal(id){document.getElementById(id)?.classList.add('is-open')}
-  function closeModal(id){document.getElementById(id)?.classList.remove('is-open')}
-  function confirmDelete(formId){ if (!confirm('Delete this service? This action cannot be undone.')) return false; document.getElementById(formId).submit(); }
-</script>
-</head>
-<body>
+<!-- Search and Filter Controls -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search Services</label>
+                <input type="text" class="form-control" id="search" name="q" placeholder="Search by service name..." value="<?= h($q) ?>">
+            </div>
+            <div class="col-md-4">
+                <label for="sort" class="form-label">Sort By</label>
+                <select class="form-select" id="sort" name="sort" onchange="this.form.submit()">
+                    <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Name (A-Z)</option>
+                    <option value="name_desc" <?= $sort==='name_desc'?'selected':'' ?>>Name (Z-A)</option>
+                    <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Price (Low to High)</option>
+                    <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Price (High to Low)</option>
+                    <option value="duration_asc" <?= $sort==='duration_asc'?'selected':'' ?>>Duration (Short to Long)</option>
+                    <option value="duration_desc" <?= $sort==='duration_desc'?'selected':'' ?>>Duration (Long to Short)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-salon w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            <input type="hidden" name="page" value="1">
+        </form>
+    </div>
+</div>
 
-<header>
-  <h1>💇 Manage Services</h1>
-  <div class="controls">
-    <form method="get" style="display:flex;gap:8px;align-items:center">
-      <input class="search" type="text" name="q" placeholder="Search services..." value="<?= h($q) ?>">
-      <select class="select" name="sort" onchange="this.form.submit()">
-        <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Name ▲</option>
-        <option value="name_desc" <?= $sort==='name_desc'?'selected':'' ?>>Name ▼</option>
-        <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Price ▲</option>
-        <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Price ▼</option>
-        <option value="duration_asc" <?= $sort==='duration_asc'?'selected':'' ?>>Duration ▲</option>
-        <option value="duration_desc" <?= $sort==='duration_desc'?'selected':'' ?>>Duration ▼</option>
-      </select>
-      <input type="hidden" name="page" value="1">
-    </form>
+<!-- Alerts -->
+<?php if ($success): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> <?= h($success) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+<?php if ($error): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <?= h($error) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
 
-    <button class="btn-add" onclick="openModal('addModal')">➕ Add Service</button>
-  </div>
-</header>
-
-<?php if ($success): ?><div class="notice success"><?= h($success) ?></div><?php endif; ?>
-<?php if ($error): ?><div class="notice error"><?= h($error) ?></div><?php endif; ?>
-
-<div class="grid-wrap">
-  <div class="grid">
+<!-- Services Grid -->
+<div class="row">
     <?php if (empty($services)): ?>
-      <div style="grid-column:1/-1;padding:28px;background:#fff;border-radius:12px;text-align:center;color:#666">No services found.</div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-scissors fs-1 text-muted d-block mb-3"></i>
+                    <h5 class="text-muted">No services found</h5>
+                    <p class="text-muted">Try adjusting your search criteria or add a new service.</p>
+                    <button class="btn btn-salon" data-bs-toggle="modal" data-bs-target="#addModal">
+                        <i class="bi bi-plus-circle"></i> Add First Service
+                    </button>
+                </div>
+            </div>
+        </div>
     <?php endif; ?>
 
     <?php foreach ($services as $s): 
         $img = find_service_image((int)$s['id']);
     ?>
-      <div class="card">
-        <div class="thumb" style="background-image:url('<?= h($img) ?>')"></div>
-        <div class="card-body">
-          <div class="title"><?= h($s['name']) ?></div>
-          <div class="meta">₱<?= number_format((float)$s['price'],2) ?> • <?= (int)$s['duration_minutes'] ?> mins</div>
-          <div class="small muted">ID: <?= (int)$s['id'] ?></div>
-
-          <div class="card-actions">
-            <button class="btn btn-edit" onclick="openModal('editModal<?= (int)$s['id'] ?>')">Edit</button>
-
-            <form id="deleteForm<?= (int)$s['id'] ?>" method="post" style="display:inline;">
-              <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
-              <input type="hidden" name="action" value="delete_service">
-              <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
-              <button type="button" class="btn btn-delete" onclick="confirmDelete('deleteForm<?= (int)$s['id'] ?>')">Delete</button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- Edit Modal -->
-      <div id="editModal<?= (int)$s['id'] ?>" class="modal" aria-hidden="true">
-        <div class="modal-panel">
-          <h2>Edit Service</h2>
-          <form method="post" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
-            <input type="hidden" name="action" value="edit_service">
-            <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
-
-            <label>Name</label>
-            <input type="text" name="name" value="<?= h($s['name']) ?>" required maxlength="191">
-
-            <label>Price</label>
-            <input type="number" name="price" step="0.01" value="<?= h($s['price']) ?>" required>
-
-            <label>Duration (minutes)</label>
-            <input type="number" name="duration" value="<?= (int)$s['duration_minutes'] ?>" required>
-
-            <label>Image (optional — JPG/PNG/WEBP, max 2.5MB)</label>
-            <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
-
-            <div class="modal-actions">
-              <button type="submit" class="btn btn-edit">Save changes</button>
-              <button type="button" class="btn btn-cancel" onclick="closeModal('editModal<?= (int)$s['id'] ?>')">Cancel</button>
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card service-card h-100">
+                <img src="<?= h($img) ?>" class="card-img-top" alt="<?= h($s['name']) ?>" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-salon"><?= h($s['name']) ?></h5>
+                    <div class="mb-2">
+                        <span class="badge bg-success">₱<?= number_format((float)$s['price'],2) ?></span>
+                        <span class="badge bg-info"><?= (int)$s['duration_minutes'] ?> mins</span>
+                    </div>
+                    <small class="text-muted mb-3">Service ID: <?= (int)$s['id'] ?></small>
+                    
+                    <div class="mt-auto">
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-outline-salon btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?= (int)$s['id'] ?>">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDelete('deleteForm<?= (int)$s['id'] ?>')">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                        
+                        <form id="deleteForm<?= (int)$s['id'] ?>" method="post" class="d-none">
+                            <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
+                            <input type="hidden" name="action" value="delete_service">
+                            <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
+                        </form>
+                    </div>
+                </div>
             </div>
-          </form>
         </div>
-      </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal<?= (int)$s['id'] ?>" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header modal-header-salon">
+                        <h5 class="modal-title">
+                            <i class="bi bi-pencil"></i> Edit Service
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
+                            <input type="hidden" name="action" value="edit_service">
+                            <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
+
+                            <div class="mb-3">
+                                <label for="edit_name_<?= (int)$s['id'] ?>" class="form-label">Service Name</label>
+                                <input type="text" class="form-control" id="edit_name_<?= (int)$s['id'] ?>" name="name" value="<?= h($s['name']) ?>" required maxlength="191">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="edit_price_<?= (int)$s['id'] ?>" class="form-label">Price (₱)</label>
+                                        <input type="number" class="form-control" id="edit_price_<?= (int)$s['id'] ?>" name="price" step="0.01" value="<?= h($s['price']) ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="edit_duration_<?= (int)$s['id'] ?>" class="form-label">Duration (minutes)</label>
+                                        <input type="number" class="form-control" id="edit_duration_<?= (int)$s['id'] ?>" name="duration" value="<?= (int)$s['duration_minutes'] ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit_image_<?= (int)$s['id'] ?>" class="form-label">Service Image</label>
+                                <input type="file" class="form-control" id="edit_image_<?= (int)$s['id'] ?>" name="image" accept="image/jpeg,image/png,image/webp">
+                                <div class="form-text">Optional — JPG/PNG/WEBP, max 2.5MB</div>
+                            </div>
+
+                            <div class="text-center">
+                                <img src="<?= h($img) ?>" alt="Current image" class="img-thumbnail" style="max-height: 150px;">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-salon">
+                                <i class="bi bi-check"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     <?php endforeach; ?>
-  </div>
+</div>
 
-  <!-- Pagination -->
-  <?php if ($totalPages > 1): ?>
-    <div style="max-width:1200px;margin:12px auto;display:flex;justify-content:center;align-items:center">
-      <div class="pagination">
-        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-          <a class="page-btn" href="?<?= http_build_query(array_merge($_GET, ['page'=>$p])) ?>" style="<?= $p===$page ? 'background:#f3f4f6;border-color:#ccc;' : '' ?>"><?= $p ?></a>
-        <?php endfor; ?>
-      </div>
+<!-- Pagination -->
+<?php if ($totalPages > 1): ?>
+    <nav aria-label="Services pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page'=>$p])) ?>">
+                        <?= $p ?>
+                    </a>
+                </li>
+            <?php endfor; ?>
+        </ul>
+    </nav>
+<?php endif; ?>
+
+<!-- Add Service Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-header-salon">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Add New Service
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
+                    <input type="hidden" name="action" value="add_service">
+
+                    <div class="mb-3">
+                        <label for="add_name" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="add_name" name="name" required maxlength="191" placeholder="e.g., Haircut, Hair Color">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="add_price" class="form-label">Price (₱)</label>
+                                <input type="number" class="form-control" id="add_price" name="price" step="0.01" required placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="add_duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="add_duration" name="duration" required placeholder="60">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="add_image" class="form-label">Service Image</label>
+                        <input type="file" class="form-control" id="add_image" name="image" accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text">Optional — JPG/PNG/WEBP, max 2.5MB</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-salon">
+                        <i class="bi bi-plus-circle"></i> Add Service
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-  <?php endif; ?>
 </div>
 
-<!-- Add Modal -->
-<div id="addModal" class="modal" aria-hidden="true">
-  <div class="modal-panel">
-    <h2>Add Service</h2>
-    <form method="post" enctype="multipart/form-data">
-      <input type="hidden" name="csrf_token" value="<?= h($CSRF) ?>">
-      <input type="hidden" name="action" value="add_service">
+<script>
+function confirmDelete(formId) {
+    if (confirm('Delete this service? This action cannot be undone.')) {
+        document.getElementById(formId).submit();
+    }
+}
+</script>
 
-      <label>Name</label>
-      <input type="text" name="name" required maxlength="191">
-
-      <label>Price</label>
-      <input type="number" name="price" step="0.01" required>
-
-      <label>Duration (minutes)</label>
-      <input type="number" name="duration" required>
-
-      <label>Image (optional — JPG/PNG/WEBP, max 2.5MB)</label>
-      <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
-
-      <div class="modal-actions">
-        <button type="submit" class="btn btn-edit">Add Service</button>
-        <button type="button" class="btn btn-cancel" onclick="closeModal('addModal')">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-</body>
-</html>
+<?php include 'inc/footer_sidebar.php'; ?>

@@ -1,5 +1,6 @@
 <?php
 require_once 'inc/bootstrap.php';
+require_once 'inc/data_loader.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'client') {
     header('Location: login.php');
     exit;
@@ -28,26 +29,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         $stmt->execute([$_SESSION['user_id']]);
         $history = $stmt->fetchAll();
         
-        // Create context for AI
-        $context = "User booking history: ";
+        // Create enhanced context for AI with custom data
+        $historyItems = [];
         if ($history) {
-            $historyItems = [];
             foreach ($history as $h) {
                 $historyItems[] = $h['service_name'] . ($h['style'] ? " ({$h['style']})" : '');
             }
-            $context .= implode(', ', $historyItems);
-        } else {
-            $context .= "No previous bookings";
         }
         
-        // Simple rule-based responses (you can integrate with OpenAI API here)
-        $response = generateAIResponse($message, $context);
+        // Build comprehensive context using custom data
+        $customContext = SalonDataLoader::buildAIContext($historyItems);
+        $formattedContext = SalonDataLoader::formatContextForAI($customContext);
+        
+        // Use OpenAI API for intelligent responses with custom data
+        $response = generateAIResponse($message, $formattedContext);
     } else {
         $error = "Please enter a message.";
     }
 }
 
 function generateAIResponse($message, $context) {
+    $messageLower = strtolower($message);
+    
+    // Define quick questions that should ALWAYS use rule-based responses
+    $quickQuestions = [
+        'how do i book an appointment',
+        'how to book appointment',
+        'book appointment',
+        'appointment booking',
+        'how do i book',
+        'booking process',
+        'schedule appointment',
+        'what hair style would suit my face shape',
+        'what hair style suits me',
+        'hair style would suit',
+        'what hair color would look good on me',
+        'recommend hair color',
+        'hair color would look good',
+        'what skincare routine should i follow',
+        'skincare advice',
+        'skincare routine should i follow',
+        'how do i maintain healthy nails',
+        'nail care tips',
+        'maintain healthy nails'
+    ];
+    
+    // Check if this is a quick question that should use rule-based responses
+    $isQuickQuestion = false;
+    foreach ($quickQuestions as $quickQ) {
+        if (strpos($messageLower, $quickQ) !== false) {
+            $isQuickQuestion = true;
+            break;
+        }
+    }
+    
+    // If it's a quick question, skip OpenAI and go straight to rule-based
+    if ($isQuickQuestion) {
+        // Add debug info (remove this in production)
+        if (isset($_GET['debug'])) {
+            return "[Quick Question - Rule-based] " . getQuickQuestionResponse($messageLower);
+        }
+        return getQuickQuestionResponse($messageLower);
+    }
+    
+    // For other questions, try OpenAI API first
+    if (defined('OPENAI_API_KEY') && OPENAI_API_KEY) {
+        $systemPrompt = "You are a professional beauty and salon assistant for Glowtime Salon. You have access to comprehensive salon data including services, beauty tips, seasonal recommendations, and product suggestions. Use this information to provide expert, personalized advice. Always be friendly, professional, and helpful. Reference specific services, products, or tips when relevant. If you don't know something specific about a client's situation, recommend they consult with our professional stylists.";
+        
+        $userPrompt = "Context: {$context}\n\nClient question: {$message}\n\nPlease provide a helpful, personalized response as a salon beauty assistant using the provided context information.";
+        
+        $openaiResponse = openai_call_with_context($systemPrompt, $userPrompt);
+        
+        // Only use OpenAI response if it's valid and not empty
+        if ($openaiResponse && trim($openaiResponse) !== '' && strlen(trim($openaiResponse)) > 10) {
+            // Add debug info to response (remove this in production)
+            if (isset($_GET['debug'])) {
+                return "[OpenAI Response] " . trim($openaiResponse);
+            }
+            return trim($openaiResponse);
+        }
+        
+        // Log when OpenAI fails for debugging
+        error_log("OpenAI API failed or returned invalid response. Falling back to rule-based responses. Message: " . $message);
+    }
+    
+    // Fallback to rule-based responses if OpenAI fails
     $message = strtolower($message);
     
     // Hair style recommendations
@@ -58,7 +124,13 @@ function generateAIResponse($message, $context) {
             "A pixie cut might be perfect if you're looking for something low-maintenance yet stylish.",
             "Long layers with face-framing pieces are very popular right now and work well with most hair textures."
         ];
-        return $responses[array_rand($responses)];
+        $response = $responses[array_rand($responses)];
+        
+        // Add debug info (remove this in production)
+        if (isset($_GET['debug'])) {
+            return "[Rule-based Response] " . $response;
+        }
+        return $response;
     }
     
     // Color recommendations
@@ -69,7 +141,13 @@ function generateAIResponse($message, $context) {
             "If you want something bold, consider rose gold or copper tones - they're very trendy right now!",
             "Ash tones are perfect if you prefer cooler colors - they can make your eyes pop!"
         ];
-        return $responses[array_rand($responses)];
+        $response = $responses[array_rand($responses)];
+        
+        // Add debug info (remove this in production)
+        if (isset($_GET['debug'])) {
+            return "[Rule-based Response] " . $response;
+        }
+        return $response;
     }
     
     // Skin care
@@ -106,6 +184,110 @@ function generateAIResponse($message, $context) {
     
     // Default response
     return "That's an interesting question! While I'd love to give you personalized advice, I recommend consulting with one of our professional stylists who can assess your specific needs. Would you like me to help you book a consultation?";
+}
+
+// Function to parse markdown content
+function parseMarkdown($text) {
+    // Remove debug prefixes if present
+    $text = preg_replace('/^\[(Quick Question - Rule-based|Rule-based Response|OpenAI Response)\] /', '', $text);
+    
+    // Convert markdown to HTML
+    $html = $text;
+    
+    // Headers
+    $html = preg_replace('/^### (.*$)/m', '<h3>$1</h3>', $html);
+    $html = preg_replace('/^## (.*$)/m', '<h2>$1</h2>', $html);
+    $html = preg_replace('/^# (.*$)/m', '<h1>$1</h1>', $html);
+    
+    // Bold and italic
+    $html = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $html);
+    $html = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $html);
+    
+    // Lists
+    $html = preg_replace('/^[\s]*[-*+] (.+)$/m', '<li>$1</li>', $html);
+    $html = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $html);
+    
+    // Numbered lists
+    $html = preg_replace('/^[\s]*\d+\. (.+)$/m', '<li>$1</li>', $html);
+    $html = preg_replace('/(<li>.*<\/li>)/s', '<ol>$1</ol>', $html);
+    
+    // Links
+    $html = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank">$1</a>', $html);
+    
+    // Line breaks
+    $html = preg_replace('/\n\n/', '</p><p>', $html);
+    $html = '<p>' . $html . '</p>';
+    
+    // Clean up empty paragraphs
+    $html = preg_replace('/<p><\/p>/', '', $html);
+    $html = preg_replace('/<p>\s*<\/p>/', '', $html);
+    
+    return $html;
+}
+
+// Function to handle quick questions with specific responses
+function getQuickQuestionResponse($message) {
+    // Booking related questions
+    if (strpos($message, 'book') !== false || strpos($message, 'appointment') !== false) {
+        return "I'd be happy to help you book an appointment! You can use our online booking system to choose your preferred service, date, and time. Would you like me to guide you through the process?";
+    }
+    
+    // Hair style questions
+    if (strpos($message, 'hair') !== false && (strpos($message, 'style') !== false || strpos($message, 'suit') !== false)) {
+        return "## Perfect Hairstyle Consultation\n\nFor the perfect hairstyle, I'd recommend consulting with one of our **professional stylists** who can assess:\n\n- Your face shape\n- Hair texture and type\n- Lifestyle and maintenance preferences\n- Current hair condition\n\nWe offer **complimentary consultations** to help you find the ideal look!";
+    }
+    
+    // Hair color questions
+    if (strpos($message, 'hair') !== false && (strpos($message, 'color') !== false || strpos($message, 'highlight') !== false)) {
+        return "## Hair Color Consultation\n\nOur **color specialists** can help you find the perfect shade! We offer complimentary color consultations where we'll analyze:\n\n- Your skin tone and undertones\n- Eye color and natural features\n- Natural hair color and texture\n- Lifestyle and maintenance preferences\n\nWe'll recommend the most **flattering options** for your unique features!";
+    }
+    
+    // Skincare questions
+    if (strpos($message, 'skin') !== false || strpos($message, 'skincare') !== false) {
+        return "## Personalized Skincare Consultation\n\nFor personalized skincare advice, I recommend booking a consultation with our **skincare specialist**. They can:\n\n- Analyze your skin type and concerns\n- Create a **customized routine** just for you\n- Recommend professional treatments\n- Provide home care guidance\n\nBook your consultation today for **healthy, glowing skin**!";
+    }
+    
+    // Nail care questions
+    if (strpos($message, 'nail') !== false || strpos($message, 'manicure') !== false) {
+        return "## Beautiful Nail Care\n\nFor **healthy, beautiful nails**, I recommend:\n\n- Regular manicures and pedicures with our skilled technicians\n- **Nail strengthening treatments** for weak nails\n- Gel polish options for long-lasting results\n- Professional nail art and design\n\nOur nail specialists can help you achieve the perfect look!";
+    }
+    
+    // Default response for quick questions
+    return "I'd be happy to help! For personalized advice, I recommend booking a consultation with one of our professional stylists who can assess your specific needs and provide expert recommendations.";
+}
+
+// Enhanced OpenAI function with better context handling
+function openai_call_with_context($systemPrompt, $userPrompt) {
+    if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) return null;
+    
+    $api_key = OPENAI_API_KEY;
+    $ch = curl_init('https://api.openai.com/v1/chat/completions');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer '.$api_key
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+        'model' => 'gpt-4o-mini',
+        'messages' => [
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $userPrompt]
+        ],
+        'max_tokens' => 300,
+        'temperature' => 0.7
+    ]));
+    
+    $res = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode !== 200) {
+        error_log("OpenAI API Error: HTTP $httpCode - $res");
+        return null;
+    }
+    
+    $json = json_decode($res, true);
+    return $json['choices'][0]['message']['content'] ?? null;
 }
 
 include 'inc/header_sidebar.php';
@@ -181,8 +363,8 @@ include 'inc/header_sidebar.php';
                                     <i class="bi bi-robot"></i>
                                 </div>
                                 <div class="message-content">
-                                    <div class="message-bubble">
-                                        <?= htmlspecialchars($response) ?>
+                                    <div class="message-bubble markdown-content">
+                                        <?= parseMarkdown($response) ?>
                                     </div>
                                 </div>
                             </div>
@@ -394,6 +576,59 @@ include 'inc/header_sidebar.php';
 
 .chat-form {
     margin-top: auto;
+}
+
+/* Markdown content styling */
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    margin: 0.5rem 0;
+    color: var(--salon-primary);
+}
+
+.markdown-content h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.markdown-content h2 {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.markdown-content h3 {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.markdown-content li {
+    margin: 0.25rem 0;
+}
+
+.markdown-content strong {
+    font-weight: 600;
+    color: var(--salon-primary-dark);
+}
+
+.markdown-content em {
+    font-style: italic;
+}
+
+.markdown-content a {
+    color: var(--salon-primary);
+    text-decoration: none;
+}
+
+.markdown-content a:hover {
+    text-decoration: underline;
+}
+
+.markdown-content p {
+    margin: 0.5rem 0;
+    line-height: 1.5;
 }
 
 @media (max-width: 768px) {

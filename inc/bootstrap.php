@@ -3,6 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// OpenAI API Configuration
+define('OPENAI_API_KEY', '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');
+
 // Database connection
 $host = "localhost";
 $db   = "glowtime_system";   // ✅ your DB name

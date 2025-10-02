@@ -188,6 +188,292 @@ if (isset($_SESSION['user_id'])) {
                 font-size: 1.2rem;
             }
         }
+        
+        /* Chatbot Popup Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--salon-primary), var(--salon-primary-dark));
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(231, 84, 128, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(231, 84, 128, 0.6);
+        }
+        
+        .chatbot-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chatbot-window.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(45deg, var(--salon-primary), var(--salon-primary-dark));
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chatbot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .chatbot-info {
+            flex: 1;
+        }
+        
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .chatbot-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .chatbot-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 300px;
+            margin-bottom: 15px;
+        }
+        
+        .chatbot-message {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+        
+        .chatbot-ai-message {
+            justify-content: flex-start;
+        }
+        
+        .chatbot-user-message {
+            justify-content: flex-end;
+        }
+        
+        .message-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .chatbot-ai-message .message-avatar {
+            background: var(--salon-primary);
+            color: white;
+            margin-right: 10px;
+        }
+        
+        .chatbot-user-message .message-avatar {
+            background: #007bff;
+            color: white;
+            margin-left: 10px;
+        }
+        
+        .message-bubble {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 250px;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .chatbot-user-message .message-bubble {
+            background: var(--salon-primary);
+            color: white;
+        }
+        
+        .chatbot-quick-questions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .quick-btn:hover {
+            background: var(--salon-primary);
+            color: white;
+            border-color: var(--salon-primary);
+        }
+        
+        .chatbot-input {
+            border-top: 1px solid #e9ecef;
+            padding-top: 15px;
+        }
+        
+        .chatbot-input .form-control {
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+        
+        .chatbot-input .form-control:focus {
+            border-color: var(--salon-primary);
+            box-shadow: 0 0 0 0.2rem rgba(231, 84, 128, 0.25);
+        }
+        
+        .chatbot-input .btn {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Typing indicator animation */
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #999;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .chatbot-container {
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .chatbot-window {
+                width: 320px;
+                height: 450px;
+            }
+            
+            .chatbot-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -470,6 +756,82 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </footer>
 
+    <!-- Chatbot Popup -->
+    <div id="chatbot-popup" class="chatbot-container">
+        <!-- Chatbot Toggle Button -->
+        <button id="chatbot-toggle" class="chatbot-toggle">
+            <i class="bi bi-chat-dots"></i>
+            <span class="chatbot-badge">1</span>
+        </button>
+        
+        <!-- Chatbot Window -->
+        <div id="chatbot-window" class="chatbot-window">
+            <div class="chatbot-header">
+                <div class="chatbot-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="chatbot-info">
+                    <h6 class="mb-0">AI Beauty Assistant</h6>
+                    <small class="text-muted">Online now</small>
+                </div>
+                <button id="chatbot-close" class="chatbot-close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-body">
+                <div class="chatbot-messages" id="chatbot-messages">
+                    <!-- Welcome Message -->
+                    <div class="chatbot-message chatbot-ai-message">
+                        <div class="message-avatar">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                Hello! 👋 I'm your AI beauty assistant. I can help you with:
+                                <ul class="mt-2 mb-0">
+                                    <li>Hair style and color recommendations</li>
+                                    <li>Skincare advice</li>
+                                    <li>Nail care tips</li>
+                                    <li>Booking appointments</li>
+                                </ul>
+                                What would you like to know?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Questions -->
+                <div class="chatbot-quick-questions">
+                    <button class="quick-btn" data-question="What hair style would suit my face shape?">
+                        Hair Style Advice
+                    </button>
+                    <button class="quick-btn" data-question="What hair color would look good on me?">
+                        Hair Color Tips
+                    </button>
+                    <button class="quick-btn" data-question="What skincare routine should I follow?">
+                        Skincare Help
+                    </button>
+                    <button class="quick-btn" data-question="How do I book an appointment?">
+                        Book Appointment
+                    </button>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="chatbot-input">
+                    <form id="chatbot-form">
+                        <div class="input-group">
+                            <input type="text" id="chatbot-message" class="form-control" placeholder="Ask me anything about beauty..." required>
+                            <button type="submit" class="btn btn-salon">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -516,6 +878,195 @@ if (isset($_SESSION['user_id'])) {
         document.querySelectorAll('.feature-card, .testimonial-card').forEach(card => {
             observer.observe(card);
         });
+
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotForm = document.getElementById('chatbot-form');
+        const chatbotMessage = document.getElementById('chatbot-message');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const quickButtons = document.querySelectorAll('.quick-btn');
+
+        // Toggle chatbot window
+        chatbotToggle.addEventListener('click', function() {
+            chatbotWindow.classList.toggle('show');
+            if (chatbotWindow.classList.contains('show')) {
+                chatbotToggle.style.display = 'none';
+            }
+        });
+
+        // Close chatbot window
+        chatbotClose.addEventListener('click', function() {
+            chatbotWindow.classList.remove('show');
+            chatbotToggle.style.display = 'block';
+        });
+
+        // Handle quick question buttons
+        quickButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const question = this.getAttribute('data-question');
+                sendMessage(question);
+            });
+        });
+
+        // Handle form submission
+        chatbotForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = chatbotMessage.value.trim();
+            if (message) {
+                sendMessage(message);
+                chatbotMessage.value = '';
+            }
+        });
+
+        // Send message function
+        function sendMessage(message) {
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Simulate AI response (you can replace this with actual API call)
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = getAIResponse(message);
+                addMessage(response, 'ai');
+            }, 1000);
+        }
+
+        // Add message to chat
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message chatbot-${sender}-message`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = sender === 'ai' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person"></i>';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = parseMarkdown(message);
+            
+            content.appendChild(bubble);
+            
+            if (sender === 'ai') {
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(content);
+            } else {
+                messageDiv.appendChild(content);
+                messageDiv.appendChild(avatar);
+            }
+            
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chatbot-message chatbot-ai-message typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatbotMessages.appendChild(typingDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Simple markdown parser
+        function parseMarkdown(text) {
+            // Remove debug prefixes
+            text = text.replace(/^\[(Quick Question - Rule-based|Rule-based Response|OpenAI Response)\] /, '');
+            
+            // Convert markdown to HTML
+            let html = text;
+            
+            // Headers
+            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            
+            // Bold and italic
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Lists
+            html = html.replace(/^[\s]*[-*+] (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+            
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // Line breaks
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            
+            // Clean up empty paragraphs
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            
+            return html;
+        }
+
+        // Get AI response (simplified version)
+        function getAIResponse(message) {
+            const responses = {
+                'hair': [
+                    "## Hair Style Consultation\n\nFor the perfect hairstyle, I'd recommend consulting with one of our **professional stylists** who can assess:\n\n- Your face shape\n- Hair texture and type\n- Lifestyle preferences\n\nWe offer **complimentary consultations** to help you find the ideal look!"
+                ],
+                'color': [
+                    "## Hair Color Consultation\n\nOur **color specialists** can help you find the perfect shade! We offer complimentary color consultations where we'll analyze:\n\n- Your skin tone and undertones\n- Eye color and natural features\n- Natural hair color and texture\n\nWe'll recommend the most **flattering options** for your unique features!"
+                ],
+                'skin': [
+                    "## Personalized Skincare Consultation\n\nFor personalized skincare advice, I recommend booking a consultation with our **skincare specialist**. They can:\n\n- Analyze your skin type and concerns\n- Create a **customized routine** just for you\n- Recommend professional treatments\n\nBook your consultation today for **healthy, glowing skin**!"
+                ],
+                'nail': [
+                    "## Beautiful Nail Care\n\nFor **healthy, beautiful nails**, I recommend:\n\n- Regular manicures and pedicures\n- **Nail strengthening treatments**\n- Gel polish options for long-lasting results\n\nOur nail specialists can help you achieve the perfect look!"
+                ],
+                'book': [
+                    "I'd be happy to help you book an appointment! You can use our online booking system to choose your preferred service, date, and time. Would you like me to guide you through the process?"
+                ]
+            };
+
+            const messageLower = message.toLowerCase();
+            
+            if (messageLower.includes('hair') && (messageLower.includes('style') || messageLower.includes('suit'))) {
+                return responses.hair[0];
+            } else if (messageLower.includes('hair') && messageLower.includes('color')) {
+                return responses.color[0];
+            } else if (messageLower.includes('skin')) {
+                return responses.skin[0];
+            } else if (messageLower.includes('nail')) {
+                return responses.nail[0];
+            } else if (messageLower.includes('book')) {
+                return responses.book[0];
+            } else {
+                return "That's a great question! I'd be happy to help you with personalized beauty advice. For the best recommendations, I suggest booking a consultation with one of our professional stylists who can assess your specific needs.";
+            }
+        }
     </script>
 
     <style>

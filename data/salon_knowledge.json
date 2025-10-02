@@ -1,0 +1,48 @@
+{
+  "salon_info": {
+    "name": "Glowtime Salon",
+    "specialties": ["hair styling", "color services", "skincare", "nail care"],
+    "awards": ["Best Salon 2023", "Customer Choice Award"],
+    "experience_years": 15,
+    "stylists": [
+      {
+        "name": "Sarah Johnson",
+        "specialty": "color specialist",
+        "experience": "8 years",
+        "certifications": ["Master Colorist", "Balayage Expert"]
+      },
+      {
+        "name": "Mike Chen",
+        "specialty": "hair cutting",
+        "experience": "12 years", 
+        "certifications": ["Advanced Cutting", "Men's Grooming"]
+      }
+    ]
+  },
+  "product_recommendations": {
+    "hair": {
+      "shampoo": ["Olaplex No.4", "Redken All Soft", "Pureology Hydrate"],
+      "conditioner": ["Olaplex No.5", "Redken All Soft", "Pureology Hydrate"],
+      "styling": ["Bumble and Bumble Surf Spray", "Oribe Dry Texturizing Spray"]
+    },
+    "skincare": {
+      "cleanser": ["CeraVe Foaming Cleanser", "La Roche-Posay Toleriane"],
+      "moisturizer": ["Olay Regenerist", "Neutrogena Hydro Boost"],
+      "sunscreen": ["EltaMD UV Clear", "La Roche-Posay Anthelios"]
+    }
+  },
+  "common_questions": {
+    "hair_color": {
+      "question": "How often should I touch up my roots?",
+      "answer": "Most clients need root touch-ups every 4-6 weeks, depending on hair growth and color contrast."
+    },
+    "hair_care": {
+      "question": "How often should I wash my hair?",
+      "answer": "It depends on your hair type - oily hair may need daily washing, while dry hair can go 2-3 days between washes."
+    },
+    "skincare": {
+      "question": "What's the best skincare routine?",
+      "answer": "A basic routine includes: cleanse, treat (serums), moisturize, and protect (SPF). Start simple and add products gradually."
+    }
+  }
+}

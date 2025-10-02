@@ -1,0 +1,88 @@
+{
+  "services": [
+    {
+      "id": 1,
+      "name": "Haircut & Styling",
+      "description": "Professional haircut with modern styling techniques",
+      "duration": 60,
+      "price": 45.00,
+      "category": "hair",
+      "trends": ["layered cuts", "face-framing", "textured styles"],
+      "recommended_for": ["all hair types", "professional look", "low maintenance"],
+      "tips": [
+        "Regular trims every 6-8 weeks maintain shape",
+        "Layered cuts add volume to fine hair",
+        "Face-framing layers complement oval and round faces"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Balayage Highlights",
+      "description": "Hand-painted highlights for natural-looking dimension",
+      "duration": 120,
+      "price": 120.00,
+      "category": "color",
+      "trends": ["honey blonde", "caramel tones", "sun-kissed look"],
+      "recommended_for": ["brunettes", "natural look", "low maintenance color"],
+      "tips": [
+        "Balayage grows out naturally without harsh lines",
+        "Perfect for first-time color clients",
+        "Maintains with purple shampoo"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Hydrating Facial",
+      "description": "Deep cleansing and hydrating facial treatment",
+      "duration": 75,
+      "price": 85.00,
+      "category": "skincare",
+      "trends": ["glass skin", "korean skincare", "hydrating masks"],
+      "recommended_for": ["dry skin", "dehydrated skin", "pre-event prep"],
+      "tips": [
+        "Best results with monthly treatments",
+        "Perfect before special events",
+        "Combines with LED therapy for enhanced results"
+      ]
+    }
+  ],
+  "beauty_tips": {
+    "hair_care": [
+      "Use sulfate-free shampoo to preserve color",
+      "Deep condition weekly for healthy hair",
+      "Protect hair from heat damage with thermal protectants"
+    ],
+    "skincare": [
+      "Always remove makeup before bed",
+      "Use SPF 30+ daily, even indoors",
+      "Exfoliate 2-3 times per week for glowing skin"
+    ],
+    "nail_care": [
+      "Keep cuticles moisturized daily",
+      "File nails in one direction to prevent splitting",
+      "Use base coat to prevent staining"
+    ]
+  },
+  "seasonal_recommendations": {
+    "spring": {
+      "hair": "Light layers and pastel highlights",
+      "skincare": "Brightening treatments and vitamin C",
+      "nails": "Pastel colors and floral nail art"
+    },
+    "summer": {
+      "hair": "Beach waves and sun-kissed highlights",
+      "skincare": "Extra hydration and SPF protection",
+      "nails": "Bright colors and tropical designs"
+    },
+    "fall": {
+      "hair": "Rich brunette tones and warm highlights",
+      "skincare": "Repair treatments and anti-aging",
+      "nails": "Deep jewel tones and metallic accents"
+    },
+    "winter": {
+      "hair": "Deep colors and protective styles",
+      "skincare": "Intensive moisturizing and barrier repair",
+      "nails": "Dark colors and holiday nail art"
+    }
+  }
+}

@@ -6,6 +6,10 @@ if (session_status() === PHP_SESSION_NONE) {
 // OpenAI API Configuration
 define('OPENAI_API_KEY', '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');
 
+// Cloudinary Configuration
+define('CLOUDINARY_URL', 'https://api.cloudinary.com/v1_1/dkcjftn5c/image/upload');
+define('CLOUDINARY_UPLOAD_PRESET', 'tmtcrs');
+
 // Database connection
 $host = "localhost";
 $db   = "glowtime_system";   // ✅ your DB name
@@ -178,4 +182,65 @@ function openai_call($prompt) {
     curl_close($ch);
     $json = json_decode($res, true);
     return $json['choices'][0]['message']['content'] ?? null;
+}
+
+/* -------- Cloudinary Integration -------- */
+
+/**
+ * Upload image to Cloudinary
+ * @param string $fileInputName - The name of the file input field
+ * @param string $folder - Optional folder name in Cloudinary
+ * @return array - ['success' => bool, 'url' => string, 'error' => string]
+ */
+function uploadToCloudinary($fileInputName, $folder = 'glowtime/payment_proofs') {
+    if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'url' => '', 'error' => 'No file uploaded or upload error'];
+    }
+
+    $file = $_FILES[$fileInputName];
+    
+    // Validate file type
+    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    $mimeType = mime_content_type($file['tmp_name']);
+    
+    if (!in_array($mimeType, $allowedTypes)) {
+        return ['success' => false, 'url' => '', 'error' => 'Invalid file type. Only JPG, PNG, and GIF are allowed.'];
+    }
+
+    // Validate file size (max 10MB)
+    if ($file['size'] > 10 * 1024 * 1024) {
+        return ['success' => false, 'url' => '', 'error' => 'File too large. Maximum size is 10MB.'];
+    }
+
+    try {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, CLOUDINARY_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        
+        $postFields = [
+            'file' => new CURLFile($file['tmp_name'], $mimeType, $file['name']),
+            'upload_preset' => CLOUDINARY_UPLOAD_PRESET,
+            'folder' => $folder,
+            'public_id' => 'payment_proof_' . time() . '_' . rand(1000, 9999)
+        ];
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200) {
+            $result = json_decode($response, true);
+            if (isset($result['secure_url'])) {
+                return ['success' => true, 'url' => $result['secure_url'], 'error' => ''];
+            }
+        }
+
+        return ['success' => false, 'url' => '', 'error' => 'Upload failed: ' . $response];
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'url' => '', 'error' => 'Upload error: ' . $e->getMessage()];
+    }
 }

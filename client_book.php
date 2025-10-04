@@ -57,17 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Down payment = 30% + transport
                 $down_payment = round(($service['price'] * 0.3) + $transportFee, 2);
 
-                // Upload proof (optional)
+                // Upload proof to Cloudinary (optional)
                 $proofFile = null;
                 if (!empty($_FILES['payment_proof']['name'])) {
-                    $ext = strtolower(pathinfo($_FILES['payment_proof']['name'], PATHINFO_EXTENSION));
-                    $allowed = ['jpg','jpeg','png','gif'];
-                    if (in_array($ext, $allowed)) {
-                        if (!is_dir("uploads")) mkdir("uploads");
-                        $proofFile = "uploads/proof_" . time() . ".$ext";
-                        move_uploaded_file($_FILES['payment_proof']['tmp_name'], $proofFile);
+                    $uploadResult = uploadToCloudinary('payment_proof');
+                    if ($uploadResult['success']) {
+                        $proofFile = $uploadResult['url'];
                     } else {
-                        $error = "❌ Invalid proof file type. Allowed: JPG, PNG, GIF.";
+                        $error = "❌ " . $uploadResult['error'];
                     }
                 }
 
@@ -105,10 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <?php include 'inc/header_sidebar.php'; ?>
 
-<style>
-.step { display:none; }
-.step.active { display:block; }
-.step-indicator { text-align:center; margin-bottom:20px; }
+  <style>
+    .step { display:none; }
+    .step.active { display:block; }
+    .step-indicator { text-align:center; margin-bottom:20px; }
 .step-indicator .step-circle { 
     display:inline-block; 
     width: 40px; 
@@ -214,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     border-bottom: 2px solid var(--salon-light);
     padding-bottom: 1rem;
 }
-</style>
+  </style>
   <script>
     function selectBookingType(type) {
       // Update hidden select
@@ -330,19 +327,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <!-- Alerts -->
-        <?php if ($success): ?>
+    <?php if ($success): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle"></i> <?= $success ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php elseif ($error): ?>
+    <?php elseif ($error): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle"></i> <?= $error ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <?php endif; ?>
+    <?php endif; ?>
 
-        <?php if (!$success): ?>
+    <?php if (!$success): ?>
         <div class="card">
             <div class="card-body">
                 <!-- Step Indicator -->
@@ -351,12 +348,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span id="indicator-2" class="step-circle">2</span>
                     <span id="indicator-3" class="step-circle">3</span>
                     <span id="indicator-4" class="step-circle">4</span>
-                </div>
+      </div>
 
                 <form method="post" enctype="multipart/form-data" id="bookingForm">
                     
                     <!-- Step 1: Service Selection -->
-                    <div class="step active" id="step1">
+      <div class="step active" id="step1">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-scissors"></i> Choose Your Service
@@ -370,15 +367,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </label>
                             <select class="form-select form-select-lg" name="service_id" id="service" required onchange="updateDownPayment(); loadBookedTimes();">
                                 <option value="">-- Choose a Service --</option>
-                                <?php
+          <?php
                                 $services = pdo()->query("SELECT * FROM services ORDER BY name")->fetchAll();
-                                foreach ($services as $s):
-                                ?>
+          foreach ($services as $s):
+          ?>
                                     <option value="<?= $s['id'] ?>" data-price="<?= $s['price'] ?>" data-duration="<?= $s['duration_minutes'] ?>">
                                         <?= htmlspecialchars($s['name']) ?> - ₱<?= number_format($s['price'],2) ?> (<?= $s['duration_minutes'] ?> mins)
                                     </option>
-                                <?php endforeach; ?>
-                            </select>
+          <?php endforeach; ?>
+        </select>
                         </div>
 
                         <div class="mb-4">
@@ -406,9 +403,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <select name="booking_type" id="booking_type" class="d-none" onchange="toggleLocation()" required>
-                                <option value="salon">Salon Appointment</option>
-                                <option value="home">Home Service</option>
-                            </select>
+          <option value="salon">Salon Appointment</option>
+          <option value="home">Home Service</option>
+        </select>
                         </div>
 
                         <div id="locationField" class="mb-4" style="display:none;">
@@ -420,17 +417,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="bi bi-info-circle"></i> 
                                 Transport fee: ₱100 (Pateros area) | ₱200 (Other areas)
                             </div>
-                        </div>
+        </div>
 
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(2)">
                                 Next Step <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
-                    </div>
+      </div>
 
                     <!-- Step 2: Date & Time -->
-                    <div class="step" id="step2">
+      <div class="step" id="step2">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-calendar"></i> Select Date & Time
@@ -479,10 +476,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Next Step <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
-                    </div>
+      </div>
 
                     <!-- Step 3: Payment -->
-                    <div class="step" id="step3">
+      <div class="step" id="step3">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-credit-card"></i> Payment Information
@@ -548,10 +545,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Review Booking <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
-                    </div>
+      </div>
 
                     <!-- Step 4: Review & Confirm -->
-                    <div class="step" id="step4">
+      <div class="step" id="step4">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-check-circle"></i> Review Your Booking
@@ -635,11 +632,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="submit" class="btn btn-salon btn-lg">
                                 <i class="bi bi-check-circle"></i> Confirm Booking
                             </button>
-                        </div>
-                    </div>
+        </div>
+      </div>
     </form>
     <?php endif; ?>
-        </div>
+  </div>
     </div>
 </div>
 

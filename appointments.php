@@ -234,9 +234,9 @@ function statusBadgeClass($status) {
                                 <?php endif; ?>
                                 <div class="mt-1">
                                     <?php if (!empty($a['payment_proof'])): ?>
-                                        <a href="<?= h($a['payment_proof']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-image"></i> View Proof
-                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="showPaymentProof('<?= h($a['payment_proof']) ?>')" title="Preview Payment Proof">
+                                            <i class="bi bi-eye"></i> View Proof
+                                        </button>
                                     <?php else: ?>
                                         <small class="text-muted">No proof uploaded</small>
                                     <?php endif; ?>
@@ -308,5 +308,42 @@ function statusBadgeClass($status) {
         </div>
     </div>
 </div>
+
+<!-- Payment Proof Preview Modal -->
+<div class="modal fade" id="paymentProofModal" tabindex="-1" aria-labelledby="paymentProofModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentProofModalLabel">
+                    <i class="bi bi-image"></i> Payment Proof
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="proofImage" src="" alt="Payment Proof" class="img-fluid rounded" style="max-height: 500px;">
+                <div class="mt-3">
+                    <a id="downloadProof" href="" download class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                    <a id="viewOriginal" href="" target="_blank" class="btn btn-outline-secondary">
+                        <i class="bi bi-box-arrow-up-right"></i> View Original
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showPaymentProof(imageUrl) {
+    document.getElementById('proofImage').src = imageUrl;
+    document.getElementById('downloadProof').href = imageUrl;
+    document.getElementById('viewOriginal').href = imageUrl;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('paymentProofModal'));
+    modal.show();
+}
+</script>
 
 <?php include 'inc/footer_sidebar.php'; ?>

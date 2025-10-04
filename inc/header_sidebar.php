@@ -92,12 +92,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             AI Assistant
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="chatbot.php" class="nav-link <?= $current_page === 'chatbot.php' ? 'active' : '' ?>">
-                            <i class="bi bi-chat-dots"></i>
-                            Chat Support
-                        </a>
-                    </li>
                 <?php endif; ?>
                 
                 <!-- Divider -->

@@ -135,12 +135,6 @@ include 'inc/header_sidebar.php';
                             AI Assistant
                         </a>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <a href="chatbot.php" class="btn btn-outline-salon w-100 py-3">
-                            <i class="bi bi-chat-dots d-block fs-4 mb-2"></i>
-                            Chat Support
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>

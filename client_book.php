@@ -152,6 +152,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     background: var(--salon-light);
 }
 
+.service-booking-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+}
+
+.service-booking-card:hover {
+    border-color: var(--salon-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--salon-shadow);
+}
+
+.service-booking-card.selected {
+    border-color: var(--salon-primary);
+    background: var(--salon-light);
+    transform: translateY(-2px);
+    box-shadow: var(--salon-shadow);
+}
+
 .payment-info-card, .payment-methods-card {
     border: none;
     box-shadow: var(--salon-shadow);
@@ -267,6 +286,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     });
 
     function nextStep(step) {
+      // Validation for step 1
+      if (step === 2) {
+        let selectedService = document.getElementById("service").value;
+        if (!selectedService) {
+          alert("Please select a service before proceeding.");
+          return;
+        }
+      }
+      
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById('step' + step).classList.add('active');
       updateIndicator(step);
@@ -295,6 +323,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById('indicator-' + i).classList.remove('active');
       }
       document.getElementById('indicator-' + activeStep).classList.add('active');
+    }
+
+    function selectService(serviceId, price, duration) {
+      // Update hidden select
+      document.getElementById("service").value = serviceId;
+      
+      // Update card selection visual
+      document.querySelectorAll('.service-booking-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      // Update selected service info
+      document.getElementById("selectedServiceInfo").style.display = "block";
+      document.getElementById("selectedServiceName").innerText = event.currentTarget.querySelector('.card-title').innerText;
+      
+      // Update down payment
+      updateDownPayment();
+      
+      // Load booked times
+      loadBookedTimes();
+    }
+    
+    function clearServiceSelection() {
+      // Clear hidden select
+      document.getElementById("service").value = "";
+      
+      // Remove selection visual
+      document.querySelectorAll('.service-booking-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Hide selected service info
+      document.getElementById("selectedServiceInfo").style.display = "none";
+      
+      // Reset down payment
+      updateDownPayment();
     }
 
     function updateDownPayment() {
@@ -362,20 +427,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         
                         <div class="mb-4">
-                            <label for="service" class="form-label fw-bold">
+                            <label class="form-label fw-bold mb-3">
                                 <i class="bi bi-list-ul"></i> Select Service *
                             </label>
-                            <select class="form-select form-select-lg" name="service_id" id="service" required onchange="updateDownPayment(); loadBookedTimes();">
-                                <option value="">-- Choose a Service --</option>
+                            
+                            <div class="row" id="serviceCards">
           <?php
                                 $services = pdo()->query("SELECT * FROM services ORDER BY name")->fetchAll();
           foreach ($services as $s):
+              // Get service image URL (similar to services.php)
+              $img = '';
+              if (!empty($s['image_url'])) {
+                  $img = $s['image_url'];
+              } else {
+                  // Fallback to local image if exists
+                  $dir = __DIR__ . '/images/services';
+                  $candidates = glob($dir . "/service{$s['id']}.*");
+                  if ($candidates && file_exists($candidates[0])) {
+                      $filename = str_replace($_SERVER['DOCUMENT_ROOT'], '', $candidates[0]);
+                      $img = (strpos($filename, '/') === 0 ? $filename : 'images/services/' . basename($candidates[0]));
+                  } else {
+                      $img = 'images/default.jpg';
+                  }
+              }
           ?>
+                                <div class="col-lg-4 col-md-6 mb-3">
+                                    <div class="card service-booking-card h-100" onclick="selectService(<?= $s['id'] ?>, <?= $s['price'] ?>, <?= $s['duration_minutes'] ?>)">
+                                        <img src="<?= htmlspecialchars($img) ?>" class="card-img-top" alt="<?= htmlspecialchars($s['name']) ?>" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title text-salon mb-2"><?= htmlspecialchars($s['name']) ?></h6>
+                                            <div class="mb-2">
+                                                <span class="badge bg-success">₱<?= number_format((float)$s['price'],2) ?></span>
+                                                <span class="badge bg-info"><?= (int)$s['duration_minutes'] ?> mins</span>
+                                            </div>
+                                            <small class="text-muted mt-auto">Click to select this service</small>
+                                        </div>
+                                    </div>
+                                </div>
+          <?php endforeach; ?>
+                            </div>
+                            
+                            <!-- Hidden select for form submission -->
+                            <select name="service_id" id="service" class="d-none" required onchange="updateDownPayment(); loadBookedTimes();">
+                                <option value="">-- Choose a Service --</option>
+          <?php foreach ($services as $s): ?>
                                     <option value="<?= $s['id'] ?>" data-price="<?= $s['price'] ?>" data-duration="<?= $s['duration_minutes'] ?>">
                                         <?= htmlspecialchars($s['name']) ?> - ₱<?= number_format($s['price'],2) ?> (<?= $s['duration_minutes'] ?> mins)
                                     </option>
           <?php endforeach; ?>
-        </select>
+                            </select>
+                            
+                            <div id="selectedServiceInfo" class="alert alert-success mt-3" style="display: none;">
+                                <i class="bi bi-check-circle"></i>
+                                <strong>Selected:</strong> <span id="selectedServiceName"></span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearServiceSelection()">
+                                    <i class="bi bi-x"></i> Change
+                                </button>
+                            </div>
                         </div>
 
                         <div class="mb-4">

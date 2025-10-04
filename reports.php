@@ -5,6 +5,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
+// Store user name for display
+$_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
+
 // --- Handle Date Filters ---
 $filter = $_GET['filter'] ?? 'all';
 $startDate = null;
@@ -73,82 +76,140 @@ $stmt = pdo()->prepare("SELECT DATE(start_at) as d, SUM(down_payment) as r
                         ORDER BY d");
 $stmt->execute($params);
 $revenueData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+include 'inc/header_sidebar.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin - Reports</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { font-family:"Segoe UI",sans-serif; background:#faf5ff; margin:0; padding:20px; }
-    h1 { text-align:center; color:#a21caf; margin-bottom:25px; }
-    .filters { text-align:center; margin-bottom:20px; }
-    .filters form { display:inline-block; background:white; padding:10px 15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    .filters label, .filters select, .filters input, .filters button { margin:5px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-bottom:30px; }
-    .card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); text-align:center; }
-    .card h2 { margin:0; font-size:18px; color:#6b21a8; }
-    .card p { font-size:24px; font-weight:bold; margin-top:10px; }
-    canvas { background:white; border-radius:12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-bottom:20px; }
-  </style>
-</head>
-<body>
-  <h1>📊 Reports & Analytics</h1>
 
-  <!-- Filters -->
-  <div class="filters">
-    <form method="get">
-      <label for="filter">Filter:</label>
-      <select name="filter" id="filter" onchange="toggleCustom(this.value)">
-        <option value="all" <?= $filter==='all'?'selected':'' ?>>All Time</option>
-        <option value="week" <?= $filter==='week'?'selected':'' ?>>This Week</option>
-        <option value="month" <?= $filter==='month'?'selected':'' ?>>This Month</option>
-        <option value="custom" <?= $filter==='custom'?'selected':'' ?>>Custom</option>
-      </select>
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0 text-salon">
+                <i class="bi bi-bar-chart me-2"></i>Reports & Analytics
+            </h1>
+        </div>
+    </div>
+</div>
 
-      <span id="customRange" style="display:<?= $filter==='custom'?'inline':'none' ?>;">
-        <label>From:</label><input type="date" name="start" value="<?= htmlspecialchars($_GET['start'] ?? '') ?>">
-        <label>To:</label><input type="date" name="end" value="<?= htmlspecialchars($_GET['end'] ?? '') ?>">
-      </span>
-      <button type="submit">Apply</button>
-    </form>
-  </div>
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filter" class="form-label">Time Period:</label>
+                        <select name="filter" id="filter" class="form-select" onchange="toggleCustom(this.value)">
+                            <option value="all" <?= $filter==='all'?'selected':'' ?>>All Time</option>
+                            <option value="week" <?= $filter==='week'?'selected':'' ?>>This Week</option>
+                            <option value="month" <?= $filter==='month'?'selected':'' ?>>This Month</option>
+                            <option value="custom" <?= $filter==='custom'?'selected':'' ?>>Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2" id="customStart" style="display:<?= $filter==='custom'?'block':'none' ?>;">
+                        <label class="form-label">From:</label>
+                        <input type="date" name="start" class="form-control" value="<?= htmlspecialchars($_GET['start'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2" id="customEnd" style="display:<?= $filter==='custom'?'block':'none' ?>;">
+                        <label class="form-label">To:</label>
+                        <input type="date" name="end" class="form-control" value="<?= htmlspecialchars($_GET['end'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-salon">
+                            <i class="bi bi-funnel"></i> Apply Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Total Bookings</h2>
-      <p><?= $totalBookings ?></p>
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Total Bookings</h5>
+                <h2 class="text-primary"><?= $totalBookings ?></h2>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Salon Bookings</h2>
-      <p><?= $totalSalon ?></p>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Salon Bookings</h5>
+                <h2 class="text-info"><?= $totalSalon ?></h2>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Home Service Bookings</h2>
-      <p><?= $totalHome ?></p>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Home Bookings</h5>
+                <h2 class="text-success"><?= $totalHome ?></h2>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Revenue (Salon)</h2>
-      <p>₱<?= number_format($revenueSalon,2) ?></p>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Salon Revenue</h5>
+                <h2 class="text-warning">₱<?= number_format($revenueSalon,2) ?></h2>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Revenue (Home)</h2>
-      <p>₱<?= number_format($revenueHome,2) ?></p>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Home Revenue</h5>
+                <h2 class="text-danger">₱<?= number_format($revenueHome,2) ?></h2>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Avg. Transport Fee (Home)</h2>
-      <p>₱<?= number_format($avgTransport,2) ?></p>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-salon">Avg Transport</h5>
+                <h2 class="text-secondary">₱<?= number_format($avgTransport,2) ?></h2>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
 
-  <!-- Charts -->
-  <canvas id="bookingsChart"></canvas>
-  <canvas id="revenueChart"></canvas>
+<!-- Charts -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-salon">Bookings per Day</h5>
+                <canvas id="bookingsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-salon">Revenue per Day</h5>
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
     function toggleCustom(val) {
-      document.getElementById('customRange').style.display = (val === 'custom') ? 'inline' : 'none';
+        const customStart = document.getElementById('customStart');
+        const customEnd = document.getElementById('customEnd');
+        if (val === 'custom') {
+            customStart.style.display = 'block';
+            customEnd.style.display = 'block';
+        } else {
+            customStart.style.display = 'none';
+            customEnd.style.display = 'none';
+        }
     }
 
     // Bookings per day chart
@@ -156,22 +217,22 @@ $revenueData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     const bookingsValues = <?= json_encode(array_column($bookingsData, 'c')) ?>;
 
     new Chart(document.getElementById('bookingsChart'), {
-      type: 'line',
-      data: {
-        labels: bookingsLabels,
-        datasets: [{
-          label: 'Bookings',
-          data: bookingsValues,
-          borderColor: '#6366f1',
-          backgroundColor: '#6366f1',
-          tension: 0.3,
-          fill: false
-        }]
-      },
-      options: {
-        plugins: { title: { display:true, text:'Bookings per Day' } },
-        scales: { y: { beginAtZero:true } }
-      }
+        type: 'line',
+        data: {
+            labels: bookingsLabels,
+            datasets: [{
+                label: 'Bookings',
+                data: bookingsValues,
+                borderColor: '#6366f1',
+                backgroundColor: '#6366f1',
+                tension: 0.3,
+                fill: false
+            }]
+        },
+        options: {
+            plugins: { title: { display:true, text:'Bookings per Day' } },
+            scales: { y: { beginAtZero:true } }
+        }
     });
 
     // Revenue per day chart
@@ -179,20 +240,20 @@ $revenueData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     const revenueValues = <?= json_encode(array_column($revenueData, 'r')) ?>;
 
     new Chart(document.getElementById('revenueChart'), {
-      type: 'bar',
-      data: {
-        labels: revenueLabels,
-        datasets: [{
-          label: 'Revenue (₱)',
-          data: revenueValues,
-          backgroundColor: '#10b981'
-        }]
-      },
-      options: {
-        plugins: { title: { display:true, text:'Revenue per Day' } },
-        scales: { y: { beginAtZero:true } }
-      }
+        type: 'bar',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Revenue (₱)',
+                data: revenueValues,
+                backgroundColor: '#10b981'
+            }]
+        },
+        options: {
+            plugins: { title: { display:true, text:'Revenue per Day' } },
+            scales: { y: { beginAtZero:true } }
+        }
     });
-  </script>
-</body>
-</html>
+</script>
+
+<?php include 'inc/footer_sidebar.php'; ?>

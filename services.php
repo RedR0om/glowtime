@@ -24,16 +24,21 @@ function services_image_dir() {
     return $dir;
 }
 
-function find_service_image($id) {
+function get_service_image_url($service) {
+    // If service has image_url from Cloudinary, use it
+    if (!empty($service['image_url'])) {
+        return $service['image_url'];
+    }
+    
+    // Fallback to local image if exists
     $dir = services_image_dir();
-    $candidates = glob($dir . "/service{$id}.*");
+    $candidates = glob($dir . "/service{$service['id']}.*");
     if ($candidates && file_exists($candidates[0])) {
-        // return web path relative to project root
         $filename = str_replace($_SERVER['DOCUMENT_ROOT'], '', $candidates[0]);
-        // if above fails, return using relative path
         return (strpos($filename, '/') === 0 ? $filename : 'images/services/' . basename($candidates[0]));
     }
-    // fallback default
+    
+    // Default fallback
     return 'images/default.jpg';
 }
 
@@ -44,28 +49,43 @@ function remove_service_images($id) {
     }
 }
 
-function handle_image_upload(array $file, int $serviceId) : bool {
-    if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) return false;
+function handle_service_image_upload(array $file, int $serviceId) : array {
+    if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'url' => '', 'error' => 'No file uploaded or upload error'];
+    }
 
-    // validate size (2.5MB) and MIME
-    if ($file['size'] > 2_500_000) return false;
+    // validate size (2.5MB)
+    if ($file['size'] > 2_500_000) {
+        return ['success' => false, 'url' => '', 'error' => 'File too large. Maximum size is 2.5MB.'];
+    }
 
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = $finfo->file($file['tmp_name']);
-    $ext = match($mime) {
-        'image/jpeg' => 'jpg',
-        'image/png'  => 'png',
-        'image/webp' => 'webp',
-        default => null
-    };
-    if ($ext === null) return false;
+    // validate file type
+    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    $mimeType = mime_content_type($file['tmp_name']);
+    
+    if (!in_array($mimeType, $allowedTypes)) {
+        return ['success' => false, 'url' => '', 'error' => 'Invalid file type. Only JPG, PNG, and WEBP are allowed.'];
+    }
 
-    $dir = services_image_dir();
-    // remove old images
-    remove_service_images($serviceId);
-
-    $dest = $dir . "/service{$serviceId}." . $ext;
-    return move_uploaded_file($file['tmp_name'], $dest);
+    try {
+        // Create a temporary $_FILES array for the uploadToCloudinary function
+        $_FILES['temp_image'] = $file;
+        
+        // Upload to Cloudinary using existing function
+        $uploadResult = uploadToCloudinary('temp_image', 'glowtime/service_images');
+        
+        // Clean up temp file reference
+        unset($_FILES['temp_image']);
+        
+        if ($uploadResult['success']) {
+            return ['success' => true, 'url' => $uploadResult['url'], 'error' => ''];
+        } else {
+            return ['success' => false, 'url' => '', 'error' => $uploadResult['error']];
+        }
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'url' => '', 'error' => 'Upload failed: ' . $e->getMessage()];
+    }
 }
 
 /* ---------------------------
@@ -92,13 +112,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!is_numeric($price) || $price < 0) { throw new Exception('Invalid price.'); }
             if (!ctype_digit((string)$duration) || (int)$duration <= 0) { throw new Exception('Duration must be a positive integer.'); }
 
-            $stmt = pdo()->prepare("INSERT INTO services (name, price, duration_minutes) VALUES (:name, :price, :duration)");
-            $stmt->execute([':name'=>$name, ':price'=>$price, ':duration'=>$duration]);
-            $serviceId = (int) pdo()->lastInsertId();
-
+            // Handle image upload first
+            $imageUrl = '';
             if (!empty($_FILES['image']['name'])) {
-                handle_image_upload($_FILES['image'], $serviceId);
+                $uploadResult = handle_service_image_upload($_FILES['image'], 0); // 0 since we don't have ID yet
+                if (!$uploadResult['success']) {
+                    throw new Exception('Image upload failed: ' . $uploadResult['error']);
+                }
+                $imageUrl = $uploadResult['url'];
             }
+
+            // Add image_url column to the database (will be created if not exists)
+            $stmt = pdo()->prepare("INSERT INTO services (name, price, duration_minutes, image_url) VALUES (:name, :price, :duration, :image_url)");
+            $stmt->execute([':name'=>$name, ':price'=>$price, ':duration'=>$duration, ':image_url'=>$imageUrl]);
+            $serviceId = (int) pdo()->lastInsertId();
 
             set_flash('success', 'Service added successfully.');
             header('Location: services.php');
@@ -116,11 +143,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!is_numeric($price) || $price < 0) { throw new Exception('Invalid price.'); }
             if (!ctype_digit((string)$duration) || (int)$duration <= 0) { throw new Exception('Duration must be a positive integer.'); }
 
-            $stmt = pdo()->prepare("UPDATE services SET name = :name, price = :price, duration_minutes = :duration WHERE id = :id");
-            $stmt->execute([':name'=>$name, ':price'=>$price, ':duration'=>$duration, ':id'=>$id]);
-
+            // Handle image upload if new image is provided
+            $imageUrl = '';
             if (!empty($_FILES['image']['name'])) {
-                handle_image_upload($_FILES['image'], $id);
+                $uploadResult = handle_service_image_upload($_FILES['image'], $id);
+                if (!$uploadResult['success']) {
+                    throw new Exception('Image upload failed: ' . $uploadResult['error']);
+                }
+                $imageUrl = $uploadResult['url'];
+                
+                // Update with new image URL
+                $stmt = pdo()->prepare("UPDATE services SET name = :name, price = :price, duration_minutes = :duration, image_url = :image_url WHERE id = :id");
+                $stmt->execute([':name'=>$name, ':price'=>$price, ':duration'=>$duration, ':image_url'=>$imageUrl, ':id'=>$id]);
+            } else {
+                // Update without changing image
+                $stmt = pdo()->prepare("UPDATE services SET name = :name, price = :price, duration_minutes = :duration WHERE id = :id");
+                $stmt->execute([':name'=>$name, ':price'=>$price, ':duration'=>$duration, ':id'=>$id]);
             }
 
             set_flash('success', 'Service updated successfully.');
@@ -163,14 +201,26 @@ if ($q !== '') {
     $params[':q'] = "%$q%";
 }
 
-$orderBy = match($sort) {
-    'name_desc'     => 'ORDER BY name DESC',
-    'price_asc'     => 'ORDER BY price ASC',
-    'price_desc'    => 'ORDER BY price DESC',
-    'duration_asc'  => 'ORDER BY duration_minutes ASC',
-    'duration_desc' => 'ORDER BY duration_minutes DESC',
-    default         => 'ORDER BY name ASC'
-};
+switch($sort) {
+    case 'name_desc':
+        $orderBy = 'ORDER BY name DESC';
+        break;
+    case 'price_asc':
+        $orderBy = 'ORDER BY price ASC';
+        break;
+    case 'price_desc':
+        $orderBy = 'ORDER BY price DESC';
+        break;
+    case 'duration_asc':
+        $orderBy = 'ORDER BY duration_minutes ASC';
+        break;
+    case 'duration_desc':
+        $orderBy = 'ORDER BY duration_minutes DESC';
+        break;
+    default:
+        $orderBy = 'ORDER BY name ASC';
+        break;
+}
 
 // total count
 $totalStmt = pdo()->prepare("SELECT COUNT(*) FROM services $where");
@@ -178,8 +228,8 @@ $totalStmt->execute($params);
 $total = (int)$totalStmt->fetchColumn();
 $totalPages = (int) ceil($total / $perPage);
 
-// fetch page
-$sql = "SELECT * FROM services $where $orderBy LIMIT $perPage OFFSET $offset";
+// fetch page - ensure image_url column is included
+$sql = "SELECT id, name, price, duration_minutes, image_url FROM services $where $orderBy LIMIT $perPage OFFSET $offset";
 $stmt = pdo()->prepare($sql);
 $stmt->execute($params);
 $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -271,7 +321,7 @@ $error = get_flash('error');
     <?php endif; ?>
 
     <?php foreach ($services as $s): 
-        $img = find_service_image((int)$s['id']);
+        $img = get_service_image_url($s);
     ?>
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="card service-card h-100">
@@ -348,6 +398,7 @@ $error = get_flash('error');
 
                             <div class="text-center">
                                 <img src="<?= h($img) ?>" alt="Current image" class="img-thumbnail" style="max-height: 150px;">
+                                <div class="form-text">Current image</div>
                             </div>
                         </div>
                         <div class="modal-footer">

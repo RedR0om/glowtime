@@ -60,12 +60,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             Reports
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="admin_services.php" class="nav-link <?= $current_page === 'admin_services.php' ? 'active' : '' ?>">
-                            <i class="bi bi-gear"></i>
-                            Settings
-                        </a>
-                    </li>
                 <?php else: ?>
                     <!-- Client Navigation -->
                     <li class="nav-item">

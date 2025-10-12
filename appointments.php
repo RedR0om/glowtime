@@ -195,16 +195,73 @@ if (!empty($_GET['error'])) {
     $error = h($_GET['error']);
 }
 
-// --- Fetch appointments (safe)
+// --- Get filter parameters
+$filter_status = $_GET['filter_status'] ?? '';
+$filter_payment_status = $_GET['filter_payment_status'] ?? '';
+$filter_booking_type = $_GET['filter_booking_type'] ?? '';
+$filter_date_from = $_GET['filter_date_from'] ?? '';
+$filter_date_to = $_GET['filter_date_to'] ?? '';
+$search_query = $_GET['search'] ?? '';
+
+// --- Fetch appointments with filters (safe)
 try {
-    $stmt = pdo()->prepare("
+    $whereConditions = [];
+    $params = [];
+    
+    // Status filter
+    if (!empty($filter_status) && in_array($filter_status, ['pending', 'confirmed', 'cancelled', 'completed'])) {
+        $whereConditions[] = "a.status = ?";
+        $params[] = $filter_status;
+    }
+    
+    // Payment status filter
+    if (!empty($filter_payment_status) && in_array($filter_payment_status, ['pending', 'verified', 'rejected'])) {
+        $whereConditions[] = "a.payment_status = ?";
+        $params[] = $filter_payment_status;
+    }
+    
+    // Booking type filter
+    if (!empty($filter_booking_type) && in_array($filter_booking_type, ['salon', 'home'])) {
+        $whereConditions[] = "a.booking_type = ?";
+        $params[] = $filter_booking_type;
+    }
+    
+    // Date range filters
+    if (!empty($filter_date_from)) {
+        $whereConditions[] = "DATE(a.start_at) >= ?";
+        $params[] = $filter_date_from;
+    }
+    
+    if (!empty($filter_date_to)) {
+        $whereConditions[] = "DATE(a.start_at) <= ?";
+        $params[] = $filter_date_to;
+    }
+    
+    // Search filter
+    if (!empty($search_query)) {
+        $whereConditions[] = "(u.name LIKE ? OR a.booking_ref LIKE ? OR s.name LIKE ?)";
+        $searchTerm = "%{$search_query}%";
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+    }
+    
+    // Build the query
+    $sql = "
         SELECT a.*, s.name AS service, u.name AS client
         FROM appointments a
         JOIN services s ON a.service_id = s.id
         JOIN users u ON a.client_id = u.id
-        ORDER BY a.start_at DESC
-    ");
-    $stmt->execute();
+    ";
+    
+    if (!empty($whereConditions)) {
+        $sql .= " WHERE " . implode(" AND ", $whereConditions);
+    }
+    
+    $sql .= " ORDER BY a.start_at DESC";
+    
+    $stmt = pdo()->prepare($sql);
+    $stmt->execute($params);
     $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (PDOException $e) {
     $appointments = [];
@@ -256,12 +313,151 @@ function statusBadgeClass($status) {
     </div>
 <?php endif; ?>
 
+<!-- Filters Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-funnel"></i> Filter Appointments
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <!-- Search -->
+            <div class="col-md-3">
+                <label for="search" class="form-label fw-bold">
+                    <i class="bi bi-search"></i> Search
+                </label>
+                <input type="text" class="form-control" name="search" id="search" 
+                       placeholder="Client, Booking Ref, or Service..." 
+                       value="<?= h($search_query) ?>">
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-md-2">
+                <label for="filter_status" class="form-label fw-bold">
+                    <i class="bi bi-calendar-check"></i> Status
+                </label>
+                <select class="form-select" name="filter_status" id="filter_status">
+                    <option value="">All Status</option>
+                    <option value="pending" <?= $filter_status === 'pending' ? 'selected' : '' ?>>Pending</option>
+                    <option value="confirmed" <?= $filter_status === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
+                    <option value="cancelled" <?= $filter_status === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                    <option value="completed" <?= $filter_status === 'completed' ? 'selected' : '' ?>>Completed</option>
+                </select>
+            </div>
+
+            <!-- Payment Status Filter -->
+            <div class="col-md-2">
+                <label for="filter_payment_status" class="form-label fw-bold">
+                    <i class="bi bi-credit-card"></i> Payment
+                </label>
+                <select class="form-select" name="filter_payment_status" id="filter_payment_status">
+                    <option value="">All Payment</option>
+                    <option value="pending" <?= $filter_payment_status === 'pending' ? 'selected' : '' ?>>Pending</option>
+                    <option value="verified" <?= $filter_payment_status === 'verified' ? 'selected' : '' ?>>Verified</option>
+                    <option value="rejected" <?= $filter_payment_status === 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                </select>
+            </div>
+
+            <!-- Booking Type Filter -->
+            <div class="col-md-2">
+                <label for="filter_booking_type" class="form-label fw-bold">
+                    <i class="bi bi-geo-alt"></i> Type
+                </label>
+                <select class="form-select" name="filter_booking_type" id="filter_booking_type">
+                    <option value="">All Types</option>
+                    <option value="salon" <?= $filter_booking_type === 'salon' ? 'selected' : '' ?>>Salon Visit</option>
+                    <option value="home" <?= $filter_booking_type === 'home' ? 'selected' : '' ?>>Home Service</option>
+                </select>
+            </div>
+
+            <!-- Date From -->
+            <div class="col-md-2">
+                <label for="filter_date_from" class="form-label fw-bold">
+                    <i class="bi bi-calendar-date"></i> From Date
+                </label>
+                <input type="date" class="form-control" name="filter_date_from" id="filter_date_from" 
+                       value="<?= h($filter_date_from) ?>">
+            </div>
+
+            <!-- Date To -->
+            <div class="col-md-2">
+                <label for="filter_date_to" class="form-label fw-bold">
+                    <i class="bi bi-calendar-date"></i> To Date
+                </label>
+                <input type="date" class="form-control" name="filter_date_to" id="filter_date_to" 
+                       value="<?= h($filter_date_to) ?>">
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-salon">
+                        <i class="bi bi-funnel"></i> Apply Filters
+                    </button>
+                    <a href="appointments.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Clear All
+                    </a>
+                    <?php if (!empty($filter_status) || !empty($filter_payment_status) || !empty($filter_booking_type) || !empty($filter_date_from) || !empty($filter_date_to) || !empty($search_query)): ?>
+                        <span class="badge bg-info align-self-center">
+                            <i class="bi bi-info-circle"></i> 
+                            <?php 
+                                $activeFilters = array_filter([
+                                    $filter_status ? "Status: " . ucfirst($filter_status) : null,
+                                    $filter_payment_status ? "Payment: " . ucfirst($filter_payment_status) : null,
+                                    $filter_booking_type ? "Type: " . ucfirst($filter_booking_type) : null,
+                                    $filter_date_from ? "From: " . date('M d, Y', strtotime($filter_date_from)) : null,
+                                    $filter_date_to ? "To: " . date('M d, Y', strtotime($filter_date_to)) : null,
+                                    $search_query ? "Search: " . $search_query : null
+                                ]);
+                                echo count($activeFilters) . " filter(s) active";
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Quick Filter Buttons -->
+        <div class="mt-3 pt-3 border-top">
+            <div class="d-flex flex-wrap gap-2">
+                <span class="text-muted me-2"><i class="bi bi-lightning"></i> Quick Filters:</span>
+                <a href="appointments.php?filter_status=pending" class="btn btn-sm btn-outline-warning quick-filter-btn">
+                    <i class="bi bi-clock"></i> Pending
+                </a>
+                <a href="appointments.php?filter_payment_status=verified" class="btn btn-sm btn-outline-success quick-filter-btn">
+                    <i class="bi bi-check-circle"></i> Verified Payments
+                </a>
+                <a href="appointments.php?filter_booking_type=home" class="btn btn-sm btn-outline-info quick-filter-btn">
+                    <i class="bi bi-house"></i> Home Services
+                </a>
+                <a href="appointments.php?filter_booking_type=salon" class="btn btn-sm btn-outline-primary quick-filter-btn">
+                    <i class="bi bi-building"></i> Salon Visits
+                </a>
+                <a href="appointments.php?filter_date_from=<?= date('Y-m-d') ?>&filter_date_to=<?= date('Y-m-d', strtotime('+7 days')) ?>" class="btn btn-sm btn-outline-secondary quick-filter-btn">
+                    <i class="bi bi-calendar-week"></i> This Week
+                </a>
+                <a href="appointments.php?filter_date_from=<?= date('Y-m-01') ?>&filter_date_to=<?= date('Y-m-t') ?>" class="btn btn-sm btn-outline-dark quick-filter-btn">
+                    <i class="bi bi-calendar-month"></i> This Month
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Appointments Table -->
 <div class="card table-salon">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-list-ul"></i> Appointments List
         </h5>
+        <div class="text-muted">
+            <i class="bi bi-info-circle"></i> 
+            Showing <?= count($appointments) ?> appointment(s)
+            <?php if (!empty($filter_status) || !empty($filter_payment_status) || !empty($filter_booking_type) || !empty($filter_date_from) || !empty($filter_date_to) || !empty($search_query)): ?>
+                <span class="text-salon">(filtered)</span>
+            <?php endif; ?>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -628,6 +824,55 @@ document.getElementById('createAppointmentForm').addEventListener('submit', func
     if (!confirm('Create this appointment? It will be automatically confirmed.')) {
         e.preventDefault();
     }
+});
+
+// Filter form enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit filters when dropdowns change (optional)
+    const filterSelects = document.querySelectorAll('select[name^="filter_"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Optional: Auto-submit on change
+            // document.querySelector('form').submit();
+        });
+    });
+    
+    // Date validation
+    const dateFrom = document.getElementById('filter_date_from');
+    const dateTo = document.getElementById('filter_date_to');
+    
+    if (dateFrom && dateTo) {
+        dateFrom.addEventListener('change', function() {
+            if (this.value && dateTo.value && this.value > dateTo.value) {
+                dateTo.value = this.value;
+            }
+        });
+        
+        dateTo.addEventListener('change', function() {
+            if (this.value && dateFrom.value && this.value < dateFrom.value) {
+                dateFrom.value = this.value;
+            }
+        });
+    }
+    
+    // Quick filter buttons (optional enhancement)
+    const quickFilters = document.querySelectorAll('.quick-filter-btn');
+    quickFilters.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filterType = this.dataset.filterType;
+            const filterValue = this.dataset.filterValue;
+            
+            if (filterType && filterValue) {
+                const form = document.querySelector('form');
+                const input = form.querySelector(`[name="${filterType}"]`);
+                if (input) {
+                    input.value = filterValue;
+                    form.submit();
+                }
+            }
+        });
+    });
 });
 </script>
 

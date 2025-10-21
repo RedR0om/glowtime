@@ -69,10 +69,22 @@ include 'inc/header_sidebar.php';
                         <?php foreach ($upcoming as $a): ?>
                             <li class="list-group-item d-flex justify-content-between align-items-start">
                                 <div>
-                                    <div class="fw-bold"><?= htmlspecialchars($a['staff_name'] ?? $a['assigned_staff_id']) ?></div>
-                                    <small class="text-muted"><?= htmlspecialchars($a['reason'] ?? '') ?></small>
+                                    <?php
+                                        // safe display name: prefer resolved staff_name, fall back to any assigned_staff variants,
+                                        // ensure a string is passed to htmlspecialchars to avoid deprecation/warnings.
+                                        $displayName = $a['staff_name'] 
+                                                     ?? $a['assigned_staff_id'] 
+                                                     ?? $a[' assigned_staff_id'] 
+                                                     ?? $a['assigned_staff'] 
+                                                     ?? '';
+                                    ?>
+                                    <div class="fw-bold"><?= htmlspecialchars((string)$displayName, ENT_QUOTES, 'UTF-8') ?></div>
+                                    <small class="text-muted"><?= htmlspecialchars((string)($a['reason'] ?? ''), ENT_QUOTES, 'UTF-8') ?></small>
                                 </div>
-                                <span class="badge bg-secondary"><?= date('M d', strtotime($a['date_absent'])) ?></span>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary"><?= date('M d, Y', strtotime($a['date_absent'])) ?></span>
+                                    <a href="staff_attendance_delete.php?id=<?= $a['id'] ?>" class="btn btn-sm btn-link text-danger" onclick="return confirm('Remove absence?')">Remove</a>
+                                </div>
                             </li>
                         <?php endforeach; ?>
                     </ul>

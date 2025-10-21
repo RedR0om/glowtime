@@ -1,5 +1,7 @@
 <?php
 require_once 'inc/bootstrap.php';
+require_once 'staff.php';
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'client') {
     header("Location: login.php");
     exit;
@@ -10,6 +12,31 @@ $_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
 
 $success = $error = "";
 
+/**
+ * Get available stylists for a specific date
+ * Excludes stylists who are marked as absent on the given date
+ */
+function get_available_stylists($date) {
+    $allStaff = get_all_staff();
+    
+    // Get absences for the specified date
+    $stmt = pdo()->prepare("
+        SELECT assigned_staff_id 
+        FROM staff_attendance 
+        WHERE date_absent = ? 
+        AND (is_deleted = '0' OR is_deleted = '' OR is_deleted IS NULL)
+    ");
+    $stmt->execute([$date]);
+    $absentStaffIds = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'assigned_staff_id');
+    
+    // Filter out absent and inactive staff
+    $availableStaff = array_filter($allStaff, function($staff) use ($absentStaffIds) {
+        return $staff['is_active'] === 'Yes' && !in_array($staff['staff_id'], $absentStaffIds);
+    });
+    
+    return array_values($availableStaff); // Re-index array
+}
+
 // Handle submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $service_id   = $_POST['service_id'] ?? null;
@@ -18,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $time         = $_POST['time'] ?? null;
     $bookingType  = $_POST['booking_type'] ?? "salon";
     $location     = ($bookingType === "home") ? trim($_POST['location_address'] ?? "") : null;
+    $assigned_staff_id = $_POST['assigned_staff_id'] ?? null;
 
-    if ($service_id && $date && $time) {
+    if ($service_id && $date && $time && $assigned_staff_id) {
         $start_at = date("Y-m-d H:i:s", strtotime("$date $time"));
 
         // Get service details
@@ -73,8 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $bookingRef = "BOOK-" . date("Ymd") . "-" . rand(100, 999);
 
                     $stmt = pdo()->prepare("INSERT INTO appointments 
-                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, payment_status, status) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')");
+                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, payment_status, status, assigned_staff_id) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?)");
                     $stmt->execute([
                         $bookingRef,
                         $_SESSION['user_id'],
@@ -86,7 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $end_at,
                         $down_payment,
                         $transportFee,
-                        $proofFile
+                        $proofFile,
+                        $assigned_staff_id
                     ]);
 
                     $success = "✅ Booking successful! Your reference is <strong>$bookingRef</strong>. Please wait for admin verification.";
@@ -232,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
   </style>
   <script>
-    function selectBookingType(type) {
+    function selectBookingType(type, element) {
       // Update hidden select
       document.getElementById("booking_type").value = type;
       
@@ -240,10 +269,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       document.querySelectorAll('.booking-type-card').forEach(card => {
         card.classList.remove('selected');
       });
-      event.currentTarget.classList.add('selected');
+      element.classList.add('selected');
       
       // Toggle location field
       toggleLocation();
+      
+      // Recalculate down payment
+      calculateDownPayment(null);
     }
     
     function toggleLocation() {
@@ -283,10 +315,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           notice.style.display = "none";
         }
       });
+      
+      // Update down payment when location address changes (for home service)
+      document.getElementById("location_address").addEventListener("input", function() {
+        calculateDownPayment(null);
+      });
+      
+      // Update down payment when booking type changes
+      document.getElementById("booking_type").addEventListener("change", function() {
+        calculateDownPayment(null);
+      });
     });
 
     function nextStep(step) {
-      // Validation for step 1
+      // Validation for step 1 (service selection)
       if (step === 2) {
         let selectedService = document.getElementById("service").value;
         if (!selectedService) {
@@ -295,11 +337,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
       }
       
+      // Validation for step 2 (date & time) - load stylists when moving to step 3
+      if (step === 3) {
+        let date = document.getElementById("date").value;
+        let time = document.getElementById("time").value;
+        if (!date || !time) {
+          alert("Please select both date and time before proceeding.");
+          return;
+        }
+        // Load available stylists for selected date
+        loadAvailableStylists(date);
+      }
+      
+      // Validation for step 3 (stylist selection)
+      if (step === 4) {
+        let selectedStylist = document.getElementById("assigned_staff_id").value;
+        if (!selectedStylist) {
+          alert("Please select a stylist before proceeding.");
+          return;
+        }
+      }
+      
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById('step' + step).classList.add('active');
       updateIndicator(step);
 
-      if (step === 4) {
+      // Update review step (now step 5)
+      if (step === 5) {
         let serviceSelect = document.getElementById("service");
         let serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
         document.getElementById("reviewService").innerText = serviceName;
@@ -309,7 +373,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById("reviewType").innerText = document.getElementById("booking_type").value;
         document.getElementById("reviewAddress").innerText = document.querySelector("[name='location_address']").value || "N/A";
         document.getElementById("reviewDownPayment").innerText = document.getElementById("downPayment").innerText;
+        
+        // Add stylist name
+        let stylistSelect = document.getElementById("assigned_staff_id");
+        let stylistName = stylistSelect.options[stylistSelect.selectedIndex]?.text || "Not selected";
+        document.getElementById("reviewStylist").innerText = stylistName;
       }
+    }
+    
+    // Load available stylists via AJAX
+    function loadAvailableStylists(date) {
+      console.log('Loading stylists for date:', date);
+      
+      fetch(`get_available_stylists.php?date=${date}`)
+        .then(res => {
+          console.log('Response status:', res.status);
+          return res.text();
+        })
+        .then(text => {
+          console.log('Raw response:', text);
+          return JSON.parse(text);
+        })
+        .then(data => {
+          console.log('Parsed data:', data);
+          
+          const stylistSelect = document.getElementById("assigned_staff_id");
+          stylistSelect.innerHTML = '<option value="">-- Choose a Stylist --</option>';
+          
+          // Check if data has error property
+          if (data.error) {
+            console.error('API Error:', data.error);
+            stylistSelect.innerHTML += '<option value="" disabled>Error loading stylists</option>';
+            return;
+          }
+          
+          // Handle array response
+          const stylists = Array.isArray(data) ? data : (data.data || []);
+          console.log('Stylists count:', stylists.length);
+          
+          if (stylists.length === 0) {
+            stylistSelect.innerHTML += '<option value="" disabled>No stylists available on this date</option>';
+          } else {
+            stylists.forEach(stylist => {
+              console.log('Adding stylist:', stylist);
+              const option = document.createElement('option');
+              option.value = stylist.staff_id;
+              option.textContent = stylist.staff_name;
+              stylistSelect.appendChild(option);
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Error loading stylists:', err);
+          alert('Error loading stylists. Please try again. Check console for details.');
+        });
     }
 
     function prevStep(step) {
@@ -319,28 +436,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     function updateIndicator(activeStep) {
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= 5; i++) {
         document.getElementById('indicator-' + i).classList.remove('active');
       }
       document.getElementById('indicator-' + activeStep).classList.add('active');
     }
 
-    function selectService(serviceId, price, duration) {
+    function selectService(serviceId, price, duration, element) {
       // Update hidden select
-      document.getElementById("service").value = serviceId;
+      const serviceSelect = document.getElementById("service");
+      serviceSelect.value = serviceId;
+      
+      // Trigger change event to update down payment
+      serviceSelect.dispatchEvent(new Event('change'));
       
       // Update card selection visual
       document.querySelectorAll('.service-booking-card').forEach(card => {
         card.classList.remove('selected');
       });
-      event.currentTarget.classList.add('selected');
+      element.classList.add('selected');
       
       // Update selected service info
       document.getElementById("selectedServiceInfo").style.display = "block";
-      document.getElementById("selectedServiceName").innerText = event.currentTarget.querySelector('.card-title').innerText;
+      document.getElementById("selectedServiceName").innerText = element.querySelector('.card-title').innerText;
       
-      // Update down payment
-      updateDownPayment();
+      // Calculate and update down payment with transport
+      calculateDownPayment(price);
       
       // Load booked times
       loadBookedTimes();
@@ -362,15 +483,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       updateDownPayment();
     }
 
-    function updateDownPayment() {
-      let select = document.getElementById("service");
-      let price = select.options[select.selectedIndex]?.getAttribute("data-price");
-      if (price) {
-        let dp = (price * 0.3).toFixed(2);
-        document.getElementById("downPayment").innerText = "₱" + dp + " + transport (if any)";
-      } else {
-        document.getElementById("downPayment").innerText = "₱0.00";
+    function calculateDownPayment(price) {
+      if (!price) {
+        let select = document.getElementById("service");
+        price = select.options[select.selectedIndex]?.getAttribute("data-price");
       }
+      
+      if (!price) {
+        document.getElementById("downPayment").innerText = "₱0.00";
+        return;
+      }
+      
+      // Calculate 30% down payment
+      let baseDownPayment = parseFloat(price) * 0.3;
+      
+      // Get booking type
+      let bookingType = document.getElementById("booking_type").value;
+      
+      // Calculate transport fee if home service
+      let transportFee = 0;
+      if (bookingType === "home") {
+        let location = document.getElementById("location_address").value.trim().toLowerCase();
+        if (location.includes('pateros')) {
+          transportFee = 100.00;
+        } else if (location !== '') {
+          transportFee = 200.00;
+        } else {
+          // If location not entered yet, show range
+          document.getElementById("downPayment").innerText = "₱" + baseDownPayment.toFixed(2) + " + ₱100-200 (transport)";
+          return;
+        }
+      }
+      
+      // Total down payment
+      let totalDownPayment = baseDownPayment + transportFee;
+      
+      if (transportFee > 0) {
+        document.getElementById("downPayment").innerText = "₱" + totalDownPayment.toFixed(2) + " (includes ₱" + transportFee.toFixed(2) + " transport)";
+      } else {
+        document.getElementById("downPayment").innerText = "₱" + totalDownPayment.toFixed(2);
+      }
+    }
+    
+    function updateDownPayment() {
+      calculateDownPayment(null);
     }
   </script>
 
@@ -380,7 +536,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1 class="h2 text-salon mb-0">
             <i class="bi bi-calendar-plus"></i> Book Appointment
         </h1>
-        <p class="text-muted mb-0">Schedule your salon visit in 4 easy steps</p>
+        <p class="text-muted mb-0">Schedule your salon visit in 5 easy steps</p>
     </div>
     <div>
         <a href="client_dashboard.php" class="btn btn-outline-salon">
@@ -413,6 +569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span id="indicator-2" class="step-circle">2</span>
                     <span id="indicator-3" class="step-circle">3</span>
                     <span id="indicator-4" class="step-circle">4</span>
+                    <span id="indicator-5" class="step-circle">5</span>
       </div>
 
                 <form method="post" enctype="multipart/form-data" id="bookingForm">
@@ -451,8 +608,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   }
               }
           ?>
-                                <div class="col-lg-4 col-md-6 mb-3">
-                                    <div class="card service-booking-card h-100" onclick="selectService(<?= $s['id'] ?>, <?= $s['price'] ?>, <?= $s['duration_minutes'] ?>)">
+                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                    <div class="card service-booking-card h-100" onclick="selectService(<?= $s['id'] ?>, <?= $s['price'] ?>, <?= $s['duration_minutes'] ?>, this)">
                                         <img src="<?= htmlspecialchars($img) ?>" class="card-img-top" alt="<?= htmlspecialchars($s['name']) ?>" style="height: 200px; object-fit: cover;">
                                         <div class="card-body d-flex flex-column">
                                             <h6 class="card-title text-salon mb-2"><?= htmlspecialchars($s['name']) ?></h6>
@@ -492,7 +649,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="card booking-type-card" onclick="selectBookingType('salon')">
+                                    <div class="card booking-type-card" onclick="selectBookingType('salon', this)">
                                         <div class="card-body text-center">
                                             <i class="bi bi-building fs-1 text-salon mb-2"></i>
                                             <h6>Salon Visit</h6>
@@ -501,7 +658,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card booking-type-card" onclick="selectBookingType('home')">
+                                    <div class="card booking-type-card" onclick="selectBookingType('home', this)">
                                         <div class="card-body text-center">
                                             <i class="bi bi-house fs-1 text-salon mb-2"></i>
                                             <h6>Home Service</h6>
@@ -586,8 +743,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
       </div>
 
-                    <!-- Step 3: Payment -->
+                    <!-- Step 3: Stylist Selection -->
       <div class="step" id="step3">
+                        <div class="step-header mb-4">
+                            <h4 class="text-salon">
+                                <i class="bi bi-person-badge"></i> Choose Your Stylist
+                            </h4>
+                            <p class="text-muted">Select the stylist you'd like to serve you</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="assigned_staff_id" class="form-label fw-bold">
+                                <i class="bi bi-scissors"></i> Select Stylist *
+                            </label>
+                            <select class="form-select form-select-lg" name="assigned_staff_id" id="assigned_staff_id" required>
+                                <option value="">-- Loading stylists... --</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                Only stylists available on your selected date are shown
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i>
+                            <strong>Note:</strong> If no stylists are available on your selected date, please go back and choose a different date.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(2)">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(4)">
+                                Next Step <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+      </div>
+
+                    <!-- Step 4: Payment -->
+      <div class="step" id="step4">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-credit-card"></i> Payment Information
@@ -618,15 +812,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="payment-methods">
                                             <div class="payment-method">
                                                 <i class="bi bi-phone text-primary"></i>
-                                                <strong>GCash:</strong> 0917-123-4567
+                                                <strong>GCash:&nbsp;</strong>0917-123-4567
                                             </div>
                                             <div class="payment-method">
                                                 <i class="bi bi-credit-card text-warning"></i>
-                                                <strong>PayMaya:</strong> Available
+                                                <strong>PayMaya:&nbsp;</strong>0917-123-4567
                                             </div>
                                             <div class="payment-method">
                                                 <i class="bi bi-bank text-success"></i>
-                                                <strong>BDO:</strong> Bank Transfer
+                                                <strong>BDO:&nbsp;</strong>00202191842
                                             </div>
                                         </div>
                                     </div>
@@ -646,17 +840,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         
                         <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(2)">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(3)">
                                 <i class="bi bi-arrow-left"></i> Back
                             </button>
-                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(4)">
+                            <button type="button" class="btn btn-salon btn-lg" onclick="nextStep(5)">
                                 Review Booking <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
       </div>
 
-                    <!-- Step 4: Review & Confirm -->
-      <div class="step" id="step4">
+                    <!-- Step 5: Review & Confirm -->
+      <div class="step" id="step5">
                         <div class="step-header mb-4">
                             <h4 class="text-salon">
                                 <i class="bi bi-check-circle"></i> Review Your Booking
@@ -700,6 +894,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </div>
                                             <div class="review-value" id="reviewStyle">-</div>
                                         </div>
+                                        
+                                        <div class="review-item">
+                                            <div class="review-label">
+                                                <i class="bi bi-person-badge text-salon"></i> Stylist
+                                            </div>
+                                            <div class="review-value" id="reviewStylist">-</div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="review-item">
@@ -734,7 +935,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         
                         <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(3)">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(4)">
                                 <i class="bi bi-arrow-left"></i> Back
                             </button>
                             <button type="submit" class="btn btn-salon btn-lg">

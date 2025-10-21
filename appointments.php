@@ -270,14 +270,20 @@ try {
 
 // --- Helper for status badge class
 function statusBadgeClass($status) {
-    return match($status) {
-        'pending'   => 'pending',
-        'verified'  => 'verified',
-        'rejected'  => 'rejected',
-        'confirmed' => 'confirmed',
-        'cancelled' => 'cancelled',
-        default     => 'pending'
-    };
+    switch($status) {
+        case 'pending':
+            return 'pending';
+        case 'verified':
+            return 'verified';
+        case 'rejected':
+            return 'rejected';
+        case 'confirmed':
+            return 'confirmed';
+        case 'cancelled':
+            return 'cancelled';
+        default:
+            return 'pending';
+    }
 }
 ?>
 <?php include 'inc/header_sidebar.php'; ?>
@@ -549,12 +555,20 @@ function statusBadgeClass($status) {
                             <td class="text-center">
                                 <?php 
                                     $paymentStatus = $a['payment_status'] ?? 'pending';
-                                    $badgeClass = match($paymentStatus) {
-                                        'verified' => 'bg-success',
-                                        'rejected' => 'bg-danger',
-                                        'pending' => 'bg-warning',
-                                        default => 'bg-secondary'
-                                    };
+                                    switch($paymentStatus) {
+                                        case 'verified':
+                                            $badgeClass = 'bg-success';
+                                            break;
+                                        case 'rejected':
+                                            $badgeClass = 'bg-danger';
+                                            break;
+                                        case 'pending':
+                                            $badgeClass = 'bg-warning';
+                                            break;
+                                        default:
+                                            $badgeClass = 'bg-secondary';
+                                            break;
+                                    }
                                 ?>
                                 <span class="badge <?= $badgeClass ?> text-white">
                                     <?= ucfirst(h($paymentStatus)) ?>
@@ -565,13 +579,23 @@ function statusBadgeClass($status) {
                             <td class="text-center">
                                 <?php 
                                     $appointmentStatus = $a['status'] ?? 'pending';
-                                    $statusBadgeClass = match($appointmentStatus) {
-                                        'confirmed' => 'bg-success',
-                                        'cancelled' => 'bg-danger',
-                                        'completed' => 'bg-info',
-                                        'pending' => 'bg-warning',
-                                        default => 'bg-secondary'
-                                    };
+                                    switch($appointmentStatus) {
+                                        case 'confirmed':
+                                            $statusBadgeClass = 'bg-success';
+                                            break;
+                                        case 'cancelled':
+                                            $statusBadgeClass = 'bg-danger';
+                                            break;
+                                        case 'completed':
+                                            $statusBadgeClass = 'bg-info';
+                                            break;
+                                        case 'pending':
+                                            $statusBadgeClass = 'bg-warning';
+                                            break;
+                                        default:
+                                            $statusBadgeClass = 'bg-secondary';
+                                            break;
+                                    }
                                 ?>
                                 <span class="badge <?= $statusBadgeClass ?> text-white">
                                     <?= ucfirst(h($appointmentStatus)) ?>
@@ -855,24 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Quick filter buttons (optional enhancement)
-    const quickFilters = document.querySelectorAll('.quick-filter-btn');
-    quickFilters.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const filterType = this.dataset.filterType;
-            const filterValue = this.dataset.filterValue;
-            
-            if (filterType && filterValue) {
-                const form = document.querySelector('form');
-                const input = form.querySelector(`[name="${filterType}"]`);
-                if (input) {
-                    input.value = filterValue;
-                    form.submit();
-                }
-            }
-        });
-    });
+    // Quick filter buttons are working via href links, no need for additional JS
 });
 </script>
 

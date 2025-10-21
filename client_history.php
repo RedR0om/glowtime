@@ -25,7 +25,13 @@ if (isset($_GET['cancel'])) {
     exit;
 }
 
-// Get flash messages
+// Get flash messages from session (for redirects from booking)
+if (isset($_SESSION['booking_success'])) {
+    $success = $_SESSION['booking_success'];
+    unset($_SESSION['booking_success']); // Clear after displaying
+}
+
+// Get flash messages from URL
 if (isset($_GET['success'])) {
     $success = $_GET['success'];
 }

@@ -119,7 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $assigned_staff_id
                     ]);
 
-                    $success = "✅ Booking successful! Your reference is <strong>$bookingRef</strong>. Please wait for admin verification.";
+                    // Redirect to history page with success message
+                    $_SESSION['booking_success'] = "✅ Booking successful! Your reference is ".$bookingRef.". Please wait for admin verification.";
+                    header("Location: client_history.php");
+                    exit;
                 }
             }
         } else {

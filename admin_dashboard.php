@@ -121,6 +121,12 @@ include 'inc/header_sidebar.php';
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
+                        <a href="admin_staff.php" class="btn btn-outline-salon w-100 py-3">
+                            <i class="bi bi-person-badge d-block fs-4 mb-2"></i>
+                            Manage Stylists
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <a href="services.php" class="btn btn-outline-salon w-100 py-3">
                             <i class="bi bi-scissors d-block fs-4 mb-2"></i>
                             Manage Services

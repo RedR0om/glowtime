@@ -49,6 +49,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="admin_staff.php">
+                            <i class="bi bi-person-badge"></i> Manage Stylists
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="services.php" class="nav-link <?= $current_page === 'services.php' ? 'active' : '' ?>">
                             <i class="bi bi-scissors"></i>
                             Services

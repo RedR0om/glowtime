@@ -1,5 +1,7 @@
 <?php
 require_once 'inc/bootstrap.php';
+require_once 'staff.php';
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit;
@@ -39,8 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $booking_type = $_POST['booking_type'] ?? 'salon';
         $location_address = ($booking_type === 'home') ? trim($_POST['location_address'] ?? '') : null;
         $style = trim($_POST['style'] ?? '');
+        $assigned_staff_id = $_POST['assigned_staff_id'] ?? null;
 
-        if ($client_id && $service_id && $date && $time) {
+        if ($client_id && $service_id && $date && $time && $assigned_staff_id) {
             try {
                 $start_at = date("Y-m-d H:i:s", strtotime("$date $time"));
                 
@@ -52,19 +55,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($service) {
                     $end_at = date("Y-m-d H:i:s", strtotime("+{$service['duration_minutes']} minutes", strtotime($start_at)));
 
-                    // Check for conflicts
+                    // Check for conflicts - same stylist at overlapping time
                     $check = pdo()->prepare("SELECT COUNT(*) FROM appointments 
-                        WHERE status IN ('pending','confirmed')
+                        WHERE assigned_staff_id = ?
+                        AND status IN ('pending','confirmed')
                         AND (
                             (start_at < ? AND end_at > ?) 
                             OR (start_at < ? AND end_at > ?) 
                             OR (start_at >= ? AND end_at <= ?)
                         )");
-                    $check->execute([$end_at, $start_at, $start_at, $end_at, $start_at, $end_at]);
+                    $check->execute([$assigned_staff_id, $end_at, $start_at, $start_at, $end_at, $start_at, $end_at]);
                     $conflict = $check->fetchColumn();
 
                     if ($conflict > 0) {
-                        header('Location: appointments.php?error=' . urlencode('Time slot conflict. Please choose another time.'));
+                        header('Location: appointments.php?error=' . urlencode('This stylist is already booked for this time slot. Please choose another time or stylist.'));
                         exit;
                     }
 
@@ -82,8 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Insert appointment (auto-verified and confirmed for admin)
                     $stmt = pdo()->prepare("INSERT INTO appointments 
-                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, payment_status, status) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'verified', 'confirmed')");
+                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, payment_status, status, assigned_staff_id) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'verified', 'confirmed', ?)");
                     $stmt->execute([
                         $bookingRef,
                         $client_id,
@@ -94,7 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $start_at,
                         $end_at,
                         $down_payment,
-                        $transportFee
+                        $transportFee,
+                        $assigned_staff_id
                     ]);
 
                     // Send confirmation email to client
@@ -246,12 +251,13 @@ try {
         $params[] = $searchTerm;
     }
     
-    // Build the query
+    // Build the query - include stylist name (with collation handling)
     $sql = "
-        SELECT a.*, s.name AS service, u.name AS client
+        SELECT a.*, s.name AS service, u.name AS client, st.staff_name AS stylist_name
         FROM appointments a
         JOIN services s ON a.service_id = s.id
         JOIN users u ON a.client_id = u.id
+        LEFT JOIN staff st ON a.assigned_staff_id COLLATE utf8mb4_unicode_ci = st.staff_id COLLATE utf8mb4_unicode_ci
     ";
     
     if (!empty($whereConditions)) {
@@ -472,6 +478,7 @@ function statusBadgeClass($status) {
                     <tr>
                         <th>Booking Ref / Client</th>
                         <th>Service / Style</th>
+                        <th>Stylist</th>
                         <th>Booking Info</th>
                         <th>Schedule</th>
                         <th>Payment</th>
@@ -483,7 +490,7 @@ function statusBadgeClass($status) {
                 <tbody>
                 <?php if (empty($appointments)): ?>
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
                             No appointments found.
                         </td>
@@ -503,6 +510,14 @@ function statusBadgeClass($status) {
                                 <?php if (!empty($a['style'])): ?>
                                     <small class="text-muted"><i class="bi bi-scissors"></i> <?= h($a['style']) ?></small>
                                 <?php endif; ?>
+                            </td>
+
+                            <!-- Stylist -->
+                            <td>
+                                <div class="fw-bold">
+                                    <i class="bi bi-person-badge text-salon"></i> 
+                                    <?= h($a['stylist_name'] ?? $a['assigned_staff_id'] ?? 'Not Assigned') ?>
+                                </div>
                             </td>
 
                             <!-- Booking Info -->
@@ -796,6 +811,20 @@ function showPaymentProof(imageUrl) {
                         </div>
                     </div>
 
+                    <!-- Stylist Selection -->
+                    <div class="mb-3">
+                        <label for="admin_assigned_staff_id" class="form-label fw-bold">
+                            <i class="bi bi-person-badge"></i> Assign Stylist *
+                        </label>
+                        <select class="form-select" name="assigned_staff_id" id="admin_assigned_staff_id" required>
+                            <option value="">-- Choose a Stylist --</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> 
+                            Only stylists available on the selected date will be shown
+                        </div>
+                    </div>
+
                     <!-- Admin Notice -->
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle"></i>
@@ -831,16 +860,55 @@ function toggleLocationField() {
     }
 }
 
+// Load available stylists for admin form
+function loadAdminStylists() {
+    const date = document.getElementById('date').value;
+    if (!date) return;
+    
+    fetch(`get_available_stylists.php?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const stylistSelect = document.getElementById('admin_assigned_staff_id');
+            stylistSelect.innerHTML = '<option value="">-- Choose a Stylist --</option>';
+            
+            if (data.error) {
+                console.error('API Error:', data.error);
+                stylistSelect.innerHTML += '<option value="" disabled>Error loading stylists</option>';
+                return;
+            }
+            
+            const stylists = Array.isArray(data) ? data : (data.data || []);
+            
+            if (stylists.length === 0) {
+                stylistSelect.innerHTML += '<option value="" disabled>No stylists available on this date</option>';
+            } else {
+                stylists.forEach(stylist => {
+                    const option = document.createElement('option');
+                    option.value = stylist.staff_id;
+                    option.textContent = stylist.staff_name;
+                    stylistSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error loading stylists:', err);
+        });
+}
+
+// Add event listener to date field
+document.getElementById('date').addEventListener('change', loadAdminStylists);
+
 // Form validation
 document.getElementById('createAppointmentForm').addEventListener('submit', function(e) {
     const clientId = document.getElementById('client_id').value;
     const serviceId = document.getElementById('service_id').value;
     const date = document.getElementById('date').value;
     const time = document.getElementById('time').value;
+    const stylistId = document.getElementById('admin_assigned_staff_id').value;
     
-    if (!clientId || !serviceId || !date || !time) {
+    if (!clientId || !serviceId || !date || !time || !stylistId) {
         e.preventDefault();
-        alert('Please fill in all required fields.');
+        alert('Please fill in all required fields including stylist selection.');
         return;
     }
     

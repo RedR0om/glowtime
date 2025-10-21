@@ -58,19 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($service) {
             $end_at = date("Y-m-d H:i:s", strtotime("+{$service['duration_minutes']} minutes", strtotime($start_at)));
 
-            // ✅ Conflict check (any overlap)
+            // ✅ Conflict check - same stylist at overlapping time
             $check = pdo()->prepare("SELECT COUNT(*) FROM appointments 
-                WHERE status IN ('pending','confirmed')
+                WHERE assigned_staff_id = ?
+                AND status IN ('pending','confirmed')
                 AND (
                     (start_at < ? AND end_at > ?) 
                     OR (start_at < ? AND end_at > ?) 
                     OR (start_at >= ? AND end_at <= ?)
                 )");
-            $check->execute([$end_at, $start_at, $start_at, $end_at, $start_at, $end_at]);
+            $check->execute([$assigned_staff_id, $end_at, $start_at, $start_at, $end_at, $start_at, $end_at]);
             $conflict = $check->fetchColumn();
 
             if ($conflict > 0) {
-                $error = "❌ Sorry, this time slot is already booked. Please choose another.";
+                $error = "❌ Sorry, this stylist is already booked for this time slot. Please choose another time or stylist.";
             } else {
                 // Transport fee
                 $transportFee = 0;

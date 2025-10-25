@@ -1,0 +1,558 @@
+/* Glowtime Salon Client Theme - Crisp & Vibrant Design */
+:root {
+    --salon-primary: #f06292;
+    --salon-secondary: #e91e63;
+    --salon-accent: #f8bbd9;
+    --salon-teal: #4dd0e1;
+    --salon-dark: #00695c;
+    --salon-bg: #fafafa;
+    --salon-card-bg: #ffffff;
+    --salon-text: #212121;
+    --salon-text-light: #757575;
+    --salon-gradient-primary: linear-gradient(135deg, #f06292, #e91e63);
+    --salon-gradient-secondary: linear-gradient(135deg, #4dd0e1, #00695c);
+    --salon-gradient-accent: linear-gradient(135deg, #f8bbd9, #4dd0e1);
+    --salon-gradient-bg: linear-gradient(135deg, #fafafa, #f5f5f5);
+    --salon-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Body and Layout */
+body {
+    background: var(--salon-gradient-bg);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    color: var(--salon-text);
+    line-height: 1.6;
+}
+
+/* Sidebar Layout */
+.sidebar-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--salon-gradient-primary);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: var(--salon-shadow-xl);
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.sidebar-brand {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-brand h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+.sidebar-brand p {
+    margin: 0;
+    font-size: 0.875rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.sidebar-nav .nav-item {
+    margin: 0.25rem 0;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+    position: relative;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--salon-teal);
+    transform: translateX(4px);
+}
+
+.sidebar-nav .nav-link.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--salon-teal);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav .nav-link i {
+    width: 20px;
+    margin-right: 0.75rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+    background: var(--salon-bg);
+}
+
+.main-content.expanded {
+    margin-left: 0;
+}
+
+/* Mobile Sidebar */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .sidebar-overlay.show {
+        display: block;
+    }
+}
+
+/* Mobile Header */
+.mobile-header {
+    display: none;
+    background: var(--salon-card-bg);
+    box-shadow: var(--salon-shadow);
+    padding: 1rem;
+    margin: -2rem -2rem 2rem -2rem;
+    position: sticky;
+    top: 0;
+    z-index: 998;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Navigation */
+.navbar-salon {
+    background: var(--salon-gradient-primary) !important;
+    box-shadow: var(--salon-shadow);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: var(--salon-shadow);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    background: var(--salon-card-bg);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--salon-shadow-lg);
+}
+
+.card-header {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-salon {
+    background: var(--salon-gradient-primary);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
+    box-shadow: var(--salon-shadow);
+}
+
+.btn-salon:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--salon-shadow-lg);
+    color: white;
+}
+
+.btn-salon:focus {
+    box-shadow: 0 0 0 3px rgba(238, 95, 155, 0.1);
+}
+
+.btn-outline-salon {
+    color: var(--salon-primary);
+    border: 2px solid var(--salon-primary);
+    background-color: transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-salon:hover {
+    background: var(--salon-gradient-primary);
+    border-color: transparent;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Form Controls */
+.form-control:focus {
+    border-color: var(--salon-teal);
+    box-shadow: 0 0 0 3px rgba(148, 222, 226, 0.1);
+}
+
+.form-select:focus {
+    border-color: var(--salon-teal);
+    box-shadow: 0 0 0 3px rgba(148, 222, 226, 0.1);
+}
+
+/* Status Badges */
+.badge-pending {
+    background: var(--salon-gradient-accent);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-confirmed {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-cancelled {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-verified {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-rejected {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-weight: 500;
+}
+
+/* Tables */
+.table-salon {
+    background: var(--salon-card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--salon-shadow);
+}
+
+.table-salon thead th {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+}
+
+.table-salon tbody tr:hover {
+    background-color: rgba(148, 222, 226, 0.05);
+}
+
+.table-salon tbody td {
+    padding: 1rem;
+    border-color: #e2e8f0;
+}
+
+/* Chat Styles */
+.chat-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--salon-card-bg);
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: var(--salon-shadow);
+}
+
+.chat-bubble {
+    max-width: 80%;
+    margin: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+.chat-user {
+    background: var(--salon-gradient-primary);
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.chat-bot {
+    background: var(--salon-gradient-accent);
+    color: white;
+    margin-right: auto;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+.slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(40px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Footer */
+.footer-salon {
+    background: var(--salon-gradient-secondary);
+    margin-top: auto;
+    color: white;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: var(--salon-card-bg);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: var(--salon-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--salon-gradient-primary);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--salon-shadow-xl);
+}
+
+.dashboard-card .card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: var(--salon-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboard-card .card-title {
+    color: var(--salon-text);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-card h2 {
+    color: var(--salon-primary);
+    font-weight: 700;
+    font-size: 2.5rem;
+}
+
+/* Service Cards */
+.service-card {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.service-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .dashboard-card {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-card .card-icon {
+        font-size: 2.5rem;
+    }
+    
+    .chat-bubble {
+        max-width: 90%;
+    }
+}
+
+/* Loading Spinner */
+.spinner-salon {
+    color: var(--salon-primary);
+}
+
+/* Alert Customization */
+.alert-salon {
+    background: var(--salon-gradient-accent);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Progress Bar */
+.progress-salon .progress-bar {
+    background: var(--salon-gradient-primary);
+}
+
+/* Modal Customization */
+.modal-header-salon {
+    background: var(--salon-gradient-primary);
+    color: white;
+    border-radius: 16px 16px 0 0;
+}
+
+/* Utility Classes */
+.text-salon {
+    color: var(--salon-primary) !important;
+}
+
+.text-salon-secondary {
+    color: var(--salon-secondary) !important;
+}
+
+.text-salon-accent {
+    color: var(--salon-accent) !important;
+}
+
+.text-salon-teal {
+    color: var(--salon-teal) !important;
+}
+
+.text-salon-dark {
+    color: var(--salon-dark) !important;
+}
+
+.bg-salon {
+    background: var(--salon-gradient-primary) !important;
+}
+
+.bg-salon-secondary {
+    background: var(--salon-gradient-secondary) !important;
+}
+
+.bg-salon-accent {
+    background: var(--salon-gradient-accent) !important;
+}
+
+.border-salon {
+    border-color: var(--salon-primary) !important;
+}
+
+.border-salon-secondary {
+    border-color: var(--salon-secondary) !important;
+}
+
+.border-salon-teal {
+    border-color: var(--salon-teal) !important;
+}

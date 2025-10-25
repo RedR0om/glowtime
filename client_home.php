@@ -28,29 +28,103 @@ $completed = $completed->fetchColumn();
 <head>
   <meta charset="UTF-8">
   <title>Welcome to Glowtime</title>
+  <!-- Dynamic Color System -->
+  <link href="css/dynamic-color-system.css" rel="stylesheet">
+  <script src="js/dynamic-color-picker.js" defer></script>
+  
   <style>
-    body { font-family: "Segoe UI", sans-serif; background: #faf5ff; margin:0; padding:0; }
-    h1, h2 { color:#ec4899; }
+    body { 
+      font-family: 'Inter', 'Segoe UI', sans-serif; 
+      background: var(--user-bg); 
+      margin:0; padding:0; 
+      color: var(--user-text);
+      line-height: 1.6;
+    }
+    h1, h2 { 
+      color: var(--user-primary); 
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
     .hero {
-      background: url('salonbnnr.jpg') no-repeat center/cover;
-      height: 300px;
+      background: var(--user-primary), url('salonbnnr.jpg') no-repeat center/cover;
+      height: 350px;
       display:flex; align-items:center; justify-content:center;
       color:white; text-shadow:0 2px 5px rgba(0,0,0,0.5);
-      font-size:2em; font-weight:bold;
+      font-size:2.5em; font-weight:700;
+      letter-spacing: -0.025em;
     }
-    .section { padding:40px 20px; }
-    .gallery { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap:20px; }
+    .section { padding:60px 20px; }
+    .gallery { 
+      display:grid; 
+      grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); 
+      gap:30px; 
+    }
     .card {
-      background:white; padding:20px; border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
+      background: var(--user-card-bg); 
+      padding: 30px; 
+      border-radius: 20px;
+      box-shadow: var(--user-shadow);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
     }
-    .card:hover { transform: scale(1.05); }
-    .card img { width:100%; border-radius:10px; height:180px; object-fit:cover; }
-    .stats { display:flex; gap:20px; margin-top:30px; }
-    .stat-box { flex:1; text-align:center; background:#fce7f3; border-radius:10px; padding:20px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
-    .stat-box h2 { margin:0; font-size:2em; color:#a21caf; }
-    .footer { background:#fce7f3; padding:20px; text-align:center; color:#6b21a8; margin-top:40px; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--user-primary);
+    }
+    .card:hover { 
+      transform: translateY(-6px); 
+      box-shadow: var(--user-shadow-xl);
+    }
+    .card img { 
+      width:100%; 
+      border-radius:16px; 
+      height:200px; 
+      object-fit:cover; 
+      transition: transform 0.3s ease;
+    }
+    .card:hover img {
+      transform: scale(1.05);
+    }
+    .stats { 
+      display:flex; 
+      gap:30px; 
+      margin-top:40px; 
+    }
+    .stat-box { 
+      flex:1; 
+      text-align:center; 
+      background: var(--user-secondary); 
+      border-radius:20px; 
+      padding:30px; 
+      box-shadow: var(--user-shadow-lg);
+      color: white;
+      transition: all 0.3s ease;
+    }
+    .stat-box:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--user-shadow-xl);
+    }
+    .stat-box h2 { 
+      margin:0; 
+      font-size:2.5em; 
+      color:white; 
+      font-weight: 700;
+    }
+    .footer { 
+      background: var(--user-primary); 
+      padding:40px 20px; 
+      text-align:center; 
+      color: white; 
+      margin-top:60px; 
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>

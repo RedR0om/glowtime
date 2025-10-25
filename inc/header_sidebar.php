@@ -19,8 +19,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- Custom Salon CSS -->
-    <link href="css/salon-style.css" rel="stylesheet">
+    <!-- Dynamic Color System -->
+    <link href="css/dynamic-color-system.css" rel="stylesheet">
+    
+    <!-- Dynamic Color Picker JavaScript -->
+    <script src="js/dynamic-color-picker.js" defer></script>
 </head>
 <body class="sidebar-layout">
     <!-- Sidebar -->

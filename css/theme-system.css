@@ -1,0 +1,737 @@
+/* Glowtime Salon Dynamic Theme System */
+
+/* Default Theme - Pink & Teal */
+:root {
+    --theme-name: 'default';
+    --salon-primary: #e91e63;
+    --salon-secondary: #f06292;
+    --salon-accent: #f8bbd9;
+    --salon-teal: #4dd0e1;
+    --salon-dark: #00695c;
+    --salon-bg: #fafafa;
+    --salon-card-bg: #ffffff;
+    --salon-text: #212121;
+    --salon-text-light: #757575;
+    --salon-gradient-primary: #e91e63;
+    --salon-gradient-secondary: #4dd0e1;
+    --salon-gradient-accent: #f8bbd9;
+    --salon-gradient-bg: #fafafa;
+    --salon-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Ocean Theme - Blue & Teal */
+[data-theme="ocean"] {
+    --theme-name: 'ocean';
+    --salon-primary: #2196f3;
+    --salon-secondary: #64b5f6;
+    --salon-accent: #bbdefb;
+    --salon-teal: #00bcd4;
+    --salon-dark: #006064;
+    --salon-bg: #f3f9ff;
+    --salon-card-bg: #ffffff;
+    --salon-text: #0d47a1;
+    --salon-text-light: #1976d2;
+    --salon-gradient-primary: #2196f3;
+    --salon-gradient-secondary: #00bcd4;
+    --salon-gradient-accent: #bbdefb;
+    --salon-gradient-bg: #f3f9ff;
+    --salon-shadow: 0 2px 8px rgba(33, 150, 243, 0.1), 0 1px 3px rgba(33, 150, 243, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(33, 150, 243, 0.15), 0 2px 6px rgba(33, 150, 243, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(33, 150, 243, 0.2), 0 4px 8px rgba(33, 150, 243, 0.15);
+}
+
+/* Forest Theme - Green & Emerald */
+[data-theme="forest"] {
+    --theme-name: 'forest';
+    --salon-primary: #4caf50;
+    --salon-secondary: #81c784;
+    --salon-accent: #c8e6c9;
+    --salon-teal: #26a69a;
+    --salon-dark: #1b5e20;
+    --salon-bg: #f1f8e9;
+    --salon-card-bg: #ffffff;
+    --salon-text: #1b5e20;
+    --salon-text-light: #388e3c;
+    --salon-gradient-primary: #4caf50;
+    --salon-gradient-secondary: #26a69a;
+    --salon-gradient-accent: #c8e6c9;
+    --salon-gradient-bg: #f1f8e9;
+    --salon-shadow: 0 2px 8px rgba(76, 175, 80, 0.1), 0 1px 3px rgba(76, 175, 80, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(76, 175, 80, 0.15), 0 2px 6px rgba(76, 175, 80, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(76, 175, 80, 0.2), 0 4px 8px rgba(76, 175, 80, 0.15);
+}
+
+/* Sunset Theme - Orange & Purple */
+[data-theme="sunset"] {
+    --theme-name: 'sunset';
+    --salon-primary: #ff5722;
+    --salon-secondary: #ff8a65;
+    --salon-accent: #ffccbc;
+    --salon-teal: #9c27b0;
+    --salon-dark: #4a148c;
+    --salon-bg: #fff3e0;
+    --salon-card-bg: #ffffff;
+    --salon-text: #bf360c;
+    --salon-text-light: #d84315;
+    --salon-gradient-primary: #ff5722;
+    --salon-gradient-secondary: #9c27b0;
+    --salon-gradient-accent: #ffccbc;
+    --salon-gradient-bg: #fff3e0;
+    --salon-shadow: 0 2px 8px rgba(255, 87, 34, 0.1), 0 1px 3px rgba(255, 87, 34, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(255, 87, 34, 0.15), 0 2px 6px rgba(255, 87, 34, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(255, 87, 34, 0.2), 0 4px 8px rgba(255, 87, 34, 0.15);
+}
+
+/* Lavender Theme - Purple & Pink */
+[data-theme="lavender"] {
+    --theme-name: 'lavender';
+    --salon-primary: #9c27b0;
+    --salon-secondary: #ba68c8;
+    --salon-accent: #e1bee7;
+    --salon-teal: #e91e63;
+    --salon-dark: #4a148c;
+    --salon-bg: #fce4ec;
+    --salon-card-bg: #ffffff;
+    --salon-text: #4a148c;
+    --salon-text-light: #7b1fa2;
+    --salon-gradient-primary: #9c27b0;
+    --salon-gradient-secondary: #e91e63;
+    --salon-gradient-accent: #e1bee7;
+    --salon-gradient-bg: #fce4ec;
+    --salon-shadow: 0 2px 8px rgba(156, 39, 176, 0.1), 0 1px 3px rgba(156, 39, 176, 0.08);
+    --salon-shadow-lg: 0 4px 12px rgba(156, 39, 176, 0.15), 0 2px 6px rgba(156, 39, 176, 0.1);
+    --salon-shadow-xl: 0 8px 16px rgba(156, 39, 176, 0.2), 0 4px 8px rgba(156, 39, 176, 0.15);
+}
+
+/* Dark Theme - Dark & Elegant */
+[data-theme="dark"] {
+    --theme-name: 'dark';
+    --salon-primary: #bb86fc;
+    --salon-secondary: #cf6679;
+    --salon-accent: #03dac6;
+    --salon-teal: #03dac6;
+    --salon-dark: #ffffff;
+    --salon-bg: #121212;
+    --salon-card-bg: #1e1e1e;
+    --salon-text: #ffffff;
+    --salon-text-light: #b3b3b3;
+    --salon-gradient-primary: #bb86fc;
+    --salon-gradient-secondary: #03dac6;
+    --salon-gradient-accent: #03dac6;
+    --salon-gradient-bg: #121212;
+    --salon-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    --salon-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --salon-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Theme Switcher Styles */
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: var(--salon-card-bg);
+    border-radius: 50px;
+    padding: 8px;
+    box-shadow: var(--salon-shadow-lg);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.theme-switcher button {
+    background: none;
+    border: none;
+    padding: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-switcher button:hover {
+    transform: scale(1.1);
+    box-shadow: var(--salon-shadow);
+}
+
+.theme-switcher button.active {
+    background: var(--salon-gradient-primary);
+    color: white;
+    box-shadow: var(--salon-shadow);
+}
+
+.theme-switcher button.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Theme Colors for Switcher */
+.theme-default { background: linear-gradient(135deg, #e91e63, #f06292); }
+.theme-ocean { background: linear-gradient(135deg, #2196f3, #64b5f6); }
+.theme-forest { background: linear-gradient(135deg, #4caf50, #81c784); }
+.theme-sunset { background: linear-gradient(135deg, #ff5722, #ff8a65); }
+.theme-lavender { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+.theme-dark { background: linear-gradient(135deg, #bb86fc, #cf6679); }
+
+/* Smooth Theme Transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Body and Layout */
+body {
+    background: var(--salon-gradient-bg);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    color: var(--salon-text);
+    line-height: 1.6;
+}
+
+/* Sidebar Layout */
+.sidebar-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--salon-gradient-primary);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: var(--salon-shadow-xl);
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.sidebar-brand {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-brand h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+.sidebar-brand p {
+    margin: 0;
+    font-size: 0.875rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.sidebar-nav .nav-item {
+    margin: 0.25rem 0;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+    position: relative;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--salon-teal);
+    transform: translateX(4px);
+}
+
+.sidebar-nav .nav-link.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--salon-teal);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav .nav-link i {
+    width: 20px;
+    margin-right: 0.75rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+    background: var(--salon-bg);
+}
+
+.main-content.expanded {
+    margin-left: 0;
+}
+
+/* Mobile Sidebar */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .sidebar-overlay.show {
+        display: block;
+    }
+    
+    .theme-switcher {
+        top: 10px;
+        right: 10px;
+        padding: 6px;
+    }
+    
+    .theme-switcher button {
+        padding: 8px;
+        margin: 0 1px;
+    }
+}
+
+/* Mobile Header */
+.mobile-header {
+    display: none;
+    background: var(--salon-card-bg);
+    box-shadow: var(--salon-shadow);
+    padding: 1rem;
+    margin: -2rem -2rem 2rem -2rem;
+    position: sticky;
+    top: 0;
+    z-index: 998;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Navigation */
+.navbar-salon {
+    background: var(--salon-gradient-primary) !important;
+    box-shadow: var(--salon-shadow);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: var(--salon-shadow);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    background: var(--salon-card-bg);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--salon-shadow-lg);
+}
+
+.card-header {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-salon {
+    background: var(--salon-gradient-primary);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
+    box-shadow: var(--salon-shadow);
+}
+
+.btn-salon:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--salon-shadow-lg);
+    color: white;
+}
+
+.btn-salon:focus {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-salon {
+    color: var(--salon-primary);
+    border: 2px solid var(--salon-primary);
+    background-color: transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-salon:hover {
+    background: var(--salon-gradient-primary);
+    border-color: transparent;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Form Controls */
+.form-control:focus {
+    border-color: var(--salon-teal);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-select:focus {
+    border-color: var(--salon-teal);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Status Badges */
+.badge-pending {
+    background: var(--salon-gradient-accent);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-confirmed {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-cancelled {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-verified {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 500;
+}
+
+.badge-rejected {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-weight: 500;
+}
+
+/* Tables */
+.table-salon {
+    background: var(--salon-card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--salon-shadow);
+}
+
+.table-salon thead th {
+    background: var(--salon-gradient-secondary);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+}
+
+.table-salon tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-salon tbody td {
+    padding: 1rem;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Chat Styles */
+.chat-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--salon-card-bg);
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: var(--salon-shadow);
+}
+
+.chat-bubble {
+    max-width: 80%;
+    margin: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+.chat-user {
+    background: var(--salon-gradient-primary);
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.chat-bot {
+    background: var(--salon-gradient-accent);
+    color: white;
+    margin-right: auto;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+.slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(40px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Footer */
+.footer-salon {
+    background: var(--salon-gradient-secondary);
+    margin-top: auto;
+    color: white;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: var(--salon-card-bg);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: var(--salon-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--salon-gradient-primary);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--salon-shadow-xl);
+}
+
+.dashboard-card .card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: var(--salon-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboard-card .card-title {
+    color: var(--salon-text);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-card h2 {
+    color: var(--salon-primary);
+    font-weight: 700;
+    font-size: 2.5rem;
+}
+
+/* Service Cards */
+.service-card {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.service-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .dashboard-card {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-card .card-icon {
+        font-size: 2.5rem;
+    }
+    
+    .chat-bubble {
+        max-width: 90%;
+    }
+}
+
+/* Loading Spinner */
+.spinner-salon {
+    color: var(--salon-primary);
+}
+
+/* Alert Customization */
+.alert-salon {
+    background: var(--salon-gradient-accent);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Progress Bar */
+.progress-salon .progress-bar {
+    background: var(--salon-gradient-primary);
+}
+
+/* Modal Customization */
+.modal-header-salon {
+    background: var(--salon-gradient-primary);
+    color: white;
+    border-radius: 16px 16px 0 0;
+}
+
+/* Utility Classes */
+.text-salon {
+    color: var(--salon-primary) !important;
+}
+
+.text-salon-secondary {
+    color: var(--salon-secondary) !important;
+}
+
+.text-salon-accent {
+    color: var(--salon-accent) !important;
+}
+
+.text-salon-teal {
+    color: var(--salon-teal) !important;
+}
+
+.text-salon-dark {
+    color: var(--salon-dark) !important;
+}
+
+.bg-salon {
+    background: var(--salon-gradient-primary) !important;
+}
+
+.bg-salon-secondary {
+    background: var(--salon-gradient-secondary) !important;
+}
+
+.bg-salon-accent {
+    background: var(--salon-gradient-accent) !important;
+}
+
+.border-salon {
+    border-color: var(--salon-primary) !important;
+}
+
+.border-salon-secondary {
+    border-color: var(--salon-secondary) !important;
+}
+
+.border-salon-teal {
+    border-color: var(--salon-teal) !important;
+}

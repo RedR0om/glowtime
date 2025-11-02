@@ -83,6 +83,16 @@
     display: none;
 }
 
+.color-picker.collapsed .color-picker-title {
+    display: none;
+}
+
+.color-picker.collapsed .color-picker-header {
+    margin-bottom: 0;
+    justify-content: center;
+    width: 100%;
+}
+
 .color-section {
     display: flex;
     flex-direction: column;

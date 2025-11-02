@@ -1,48 +1,85 @@
 {
   "salon_info": {
     "name": "Glowtime Salon",
+    "description": "Glowtime Salon began in October 2009 as a small local barbershop. The current owner purchased the property and transformed it into a salon — originally just a personal hobby. Over time, it grew into a meaningful venture that helped support the community and the owner's family, even providing education opportunities for relatives. What started as a passion project became a thriving business with six branches before the pandemic. Despite the challenges, the main branch remains strong and continues to serve its loyal clients.",
     "specialties": ["hair styling", "color services", "skincare", "nail care"],
-    "awards": ["Best Salon 2023", "Customer Choice Award"],
+    "awards": ["Top Rated Salon 2024", "Customer Choice Award"],
     "experience_years": 15,
+    "established_year": 2009,
+    "background_story": "Glowtime Salon started as a small barbershop in 2009. The owner turned it into a salon out of passion, which later became a stepping stone to help others and support family members. Through dedication and hard work, the business grew to six branches before the pandemic, but the main salon continues to thrive as a symbol of resilience and community service.",
+    "atmosphere": "Relaxed, modern, and client-focused environment with a touch of luxury.",
+    "business_hours": {
+      "monday": "9:00 AM – 7:00 PM",
+      "tuesday": "9:00 AM – 7:00 PM",
+      "wednesday": "9:00 AM – 7:00 PM",
+      "thursday": "9:00 AM – 7:00 PM",
+      "friday": "9:00 AM – 7:00 PM",
+      "saturday": "9:00 AM – 5:00 PM",
+      "sunday": "Closed"
+    },
+    "contact_info": {
+      "phone": "(+63) 912 345 6789",
+      "email": "info@glowtimesalon.com",
+      "address": "2nd Floor, City Center Mall, Quezon City, Philippines",
+      "social_media": {
+        "facebook": "https://facebook.com/glowtimesalon",
+        "instagram": "https://instagram.com/glowtimesalon"
+      }
+    },
     "stylists": [
       {
-        "name": "Sarah Johnson",
-        "specialty": "color specialist",
-        "experience": "8 years",
-        "certifications": ["Master Colorist", "Balayage Expert"]
+        "name": "Stylist A",
+        "specialty": "hair color and balayage",
+        "experience": "7 years",
+        "certifications": ["Advanced Colorist", "Balayage Pro"],
+        "bio": "Known for creating natural, sun-kissed looks and vibrant tones tailored to each client’s personality and lifestyle."
       },
       {
-        "name": "Mike Chen",
-        "specialty": "hair cutting",
-        "experience": "12 years", 
-        "certifications": ["Advanced Cutting", "Men's Grooming"]
+        "name": "Stylist B",
+        "specialty": "precision haircuts and men’s grooming",
+        "experience": "10 years",
+        "certifications": ["Master Barber", "Advanced Cutting Techniques"],
+        "bio": "Expert in modern and classic cuts, from fades to textured styles. Dedicated to giving clients clean, confident looks."
       }
     ]
   },
+
   "product_recommendations": {
     "hair": {
-      "shampoo": ["Olaplex No.4", "Redken All Soft", "Pureology Hydrate"],
-      "conditioner": ["Olaplex No.5", "Redken All Soft", "Pureology Hydrate"],
-      "styling": ["Bumble and Bumble Surf Spray", "Oribe Dry Texturizing Spray"]
+      "shampoo": ["Olaplex No.4 Bond Maintenance", "Redken All Soft", "Pureology Hydrate"],
+      "conditioner": ["Olaplex No.5 Bond Maintenance", "Redken All Soft", "Pureology Hydrate"],
+      "styling": ["Bumble and Bumble Surf Spray", "Oribe Dry Texturizing Spray", "L'Oréal Professionnel Tecni.Art"]
     },
     "skincare": {
-      "cleanser": ["CeraVe Foaming Cleanser", "La Roche-Posay Toleriane"],
-      "moisturizer": ["Olay Regenerist", "Neutrogena Hydro Boost"],
-      "sunscreen": ["EltaMD UV Clear", "La Roche-Posay Anthelios"]
+      "cleanser": ["CeraVe Foaming Cleanser", "La Roche-Posay Toleriane", "CosRx Low pH Good Morning Gel"],
+      "moisturizer": ["Olay Regenerist", "Neutrogena Hydro Boost", "Clinique Moisture Surge"],
+      "sunscreen": ["EltaMD UV Clear", "La Roche-Posay Anthelios", "Biore Aqua Rich SPF 50+"]
+    },
+    "nails": {
+      "care": ["OPI Nail Envy", "Essie Apricot Cuticle Oil", "Sally Hansen Hard as Nails"]
     }
   },
+
   "common_questions": {
     "hair_color": {
       "question": "How often should I touch up my roots?",
-      "answer": "Most clients need root touch-ups every 4-6 weeks, depending on hair growth and color contrast."
+      "answer": "Most clients return every 4–6 weeks for root touch-ups, depending on hair growth and color contrast."
     },
     "hair_care": {
       "question": "How often should I wash my hair?",
-      "answer": "It depends on your hair type - oily hair may need daily washing, while dry hair can go 2-3 days between washes."
+      "answer": "It depends on your hair type. Oily hair may need daily washing, while dry or curly hair can go 2–3 days between washes."
     },
     "skincare": {
       "question": "What's the best skincare routine?",
-      "answer": "A basic routine includes: cleanse, treat (serums), moisturize, and protect (SPF). Start simple and add products gradually."
+      "answer": "Start with a simple 4-step routine: cleanse, treat with serum, moisturize, and apply SPF daily. Adjust products based on your skin type."
+    },
+    "appointments": {
+      "question": "Do I need to book an appointment?",
+      "answer": "Walk-ins are welcome, but appointments are recommended to secure your preferred time and stylist."
+    },
+    "payments": {
+      "question": "What payment methods do you accept?",
+      "answer": "We accept cash and popular digital wallets such as GCash and Maya."
     }
   }
 }

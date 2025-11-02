@@ -720,7 +720,7 @@ if (isset($_SESSION['user_id'])) {
                             <a href="register.php" class="btn btn-lg px-5" style="background-color: var(--salon-primary); border-color: var(--salon-primary); color: white;">
                                 Book Your Appointment
                             </a>
-                            <a href="login.php" class="btn btn-outline btn-lg px-5" style="border-color: var(--salon-primary); color: var(--salon-primary);">
+                            <a href="login.php" class="btn btn-lg px-5" style="background-color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.5); color: var(--salon-primary); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
                                 Explore Services
                             </a>
                         </div>
@@ -864,8 +864,8 @@ if (isset($_SESSION['user_id'])) {
                         <img src="elegant-beauty-salon-interior-with-pink-flowers-an.jpg" alt="Salon interior" class="img-fluid rounded-4 shadow w-100">
                         <div class="position-absolute bottom-0 start-0 m-3">
                             <div class="text-white p-4 rounded-4 shadow" style="background-color: var(--salon-primary); min-width: 180px;">
-                                <h2 class="fw-bold mb-1" style="font-size:2.5rem;">10+</h2>
-                                <div style="font-size:1rem;">Years of Excellence in Beauty Services</div>
+                                <h2 class="fw-bold mb-1" style="font-size:2.5rem;">15+</h2>
+                                <div style="font-size:1rem;">Years of Dedicated Service</div>
                             </div>
                         </div>
                     </div>
@@ -877,28 +877,28 @@ if (isset($_SESSION['user_id'])) {
                         <h2 class="fw-bold mb-0" style="font-size:2.5rem;">About Glowtime Salon</h2>
                     </div>
                     <p class="lead mb-3">
-                        Welcome to Glowtime Salon, where elegance meets expertise. For over a decade, we've been dedicated to helping women feel confident, beautiful, and empowered through our premium beauty services.
+                        Welcome to Glowtime Salon! Our journey began in October 2009 when we transformed an old barbershop into the beauty haven you see today. What started as a humble side project has grown into a legacy of service and opportunity.
                     </p>
                     <p class="mb-3">
-                        Our salon is more than just a place for beauty treatments—it's a sanctuary where you can escape the everyday and indulge in self-care. From the moment you step through our doors, you'll be enveloped in a serene, feminine atmosphere designed to make you feel special.
+                        The owner purchased the land and established this salon not just as a business, but as a passion project—a stepping stone to create opportunities for others. Through the years, this venture has become a catalyst for change, helping countless individuals and families build better lives.
                     </p>
                     <p class="mb-3">
-                        Our team of highly skilled professionals stays current with the latest trends and techniques, ensuring you receive the best possible service. We use only premium, cruelty-free products and take pride in our attention to detail, personalized consultations, and commitment to your satisfaction.
+                        From 2009 onwards, what began as a simple dream flourished beyond imagination. We expanded to 6 branches across different locations, touching more lives and spreading our commitment to excellence. Even during the challenging times of the pandemic, our main branch remained stable and resilient, a testament to our dedication to serving our community.
                     </p>
                     <p class="fw-bold mb-4" style="color: var(--salon-primary);">
-                        At Glowtime Salon, we believe every woman deserves to feel beautiful. Let us help you blossom.
+                        Today, Glowtime Salon stands strong—not just as a business, but as a symbol of perseverance, community, and the beauty of transformation.
                     </p>
                     <div class="row text-center mt-4">
                         <div class="col-4">
-                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">5000+</h3>
+                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">10,XXX+</h3>
                             <div class="text-muted" style="font-size:0.95rem;">Happy Clients</div>
                         </div>
                         <div class="col-4">
-                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">15+</h3>
-                            <div class="text-muted" style="font-size:0.95rem;">Expert Stylists</div>
+                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">16</h3>
+                            <div class="text-muted" style="font-size:0.95rem;">Years</div>
                         </div>
                         <div class="col-4">
-                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">50+</h3>
+                            <h3 class="fw-bold mb-1" style="color: var(--salon-primary);">10+</h3>
                             <div class="text-muted" style="font-size:0.95rem;">Services Offered</div>
                         </div>
                     </div>
@@ -1264,7 +1264,7 @@ if (isset($_SESSION['user_id'])) {
         });
 
         // Send message function
-        function sendMessage(message) {
+        async function sendMessage(message) {
             // Add user message
             addMessage(message, 'user');
             
@@ -1277,18 +1277,42 @@ if (isset($_SESSION['user_id'])) {
             // Show typing indicator
             showTypingIndicator();
             
-            // Simulate AI response (you can replace this with actual API call)
-            setTimeout(() => {
+            try {
+                // Call the actual API endpoint
+                const response = await fetch('api/chatbot.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
                 hideTypingIndicator();
-                const response = getAIResponse(message);
-                addMessage(response, 'ai');
+                
+                if (data.success) {
+                    addMessage(data.message, 'ai');
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                }
                 
                 // Ensure input field remains visible and focused
                 const messageInput = document.getElementById('chatbot-message');
                 if (messageInput) {
                     messageInput.focus();
                 }
-            }, 1000);
+            } catch (error) {
+                console.error('Error:', error);
+                hideTypingIndicator();
+                addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                
+                const messageInput = document.getElementById('chatbot-message');
+                if (messageInput) {
+                    messageInput.focus();
+                }
+            }
         }
 
         // Add message to chat
@@ -1386,42 +1410,6 @@ if (isset($_SESSION['user_id'])) {
             return html;
         }
 
-        // Get AI response (simplified version)
-        function getAIResponse(message) {
-            const responses = {
-                'hair': [
-                    "## Hair Style Consultation\n\nFor the perfect hairstyle, I'd recommend consulting with one of our **professional stylists** who can assess:\n\n- Your face shape\n- Hair texture and type\n- Lifestyle preferences\n\nWe offer **complimentary consultations** to help you find the ideal look!"
-                ],
-                'color': [
-                    "## Hair Color Consultation\n\nOur **color specialists** can help you find the perfect shade! We offer complimentary color consultations where we'll analyze:\n\n- Your skin tone and undertones\n- Eye color and natural features\n- Natural hair color and texture\n\nWe'll recommend the most **flattering options** for your unique features!"
-                ],
-                'skin': [
-                    "## Personalized Skincare Consultation\n\nFor personalized skincare advice, I recommend booking a consultation with our **skincare specialist**. They can:\n\n- Analyze your skin type and concerns\n- Create a **customized routine** just for you\n- Recommend professional treatments\n\nBook your consultation today for **healthy, glowing skin**!"
-                ],
-                'nail': [
-                    "## Beautiful Nail Care\n\nFor **healthy, beautiful nails**, I recommend:\n\n- Regular manicures and pedicures\n- **Nail strengthening treatments**\n- Gel polish options for long-lasting results\n\nOur nail specialists can help you achieve the perfect look!"
-                ],
-                'book': [
-                    "I'd be happy to help you book an appointment! You can use our online booking system to choose your preferred service, date, and time. Would you like me to guide you through the process?"
-                ]
-            };
-
-            const messageLower = message.toLowerCase();
-            
-            if (messageLower.includes('hair') && (messageLower.includes('style') || messageLower.includes('suit'))) {
-                return responses.hair[0];
-            } else if (messageLower.includes('hair') && messageLower.includes('color')) {
-                return responses.color[0];
-            } else if (messageLower.includes('skin')) {
-                return responses.skin[0];
-            } else if (messageLower.includes('nail')) {
-                return responses.nail[0];
-            } else if (messageLower.includes('book')) {
-                return responses.book[0];
-            } else {
-                return "That's a great question! I'd be happy to help you with personalized beauty advice. For the best recommendations, I suggest booking a consultation with one of our professional stylists who can assess your specific needs.";
-            }
-        }
     </script>
 
     <style>

@@ -15,7 +15,7 @@ class SalonDataLoader {
             return self::$cache[$filename];
         }
         
-        $filepath = __DIR__ . '/../data/' . $filename;
+        $filepath = __DIR__ . '/../data/' . $filename; // correct if inc and data are same level
         if (!file_exists($filepath)) {
             return null;
         }
@@ -168,6 +168,11 @@ class SalonDataLoader {
             $context['user_history'] = $userHistory;
         }
         
+        error_log("Salon info: " . print_r($salonInfo, true));
+        error_log("Services: " . print_r($services, true));
+        error_log("Tips: " . print_r($tips, true));
+        error_log("Seasonal: " . print_r($seasonalRecs, true));
+
         return $context;
     }
     

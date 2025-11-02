@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // OpenAI API Configuration
-define('OPENAI_API_KEY', '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');
+define('OPENAI_API_KEY', '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');
 
 // Cloudinary Configuration
 define('CLOUDINARY_URL', 'https://api.cloudinary.com/v1_1/dkcjftn5c/image/upload');
@@ -162,27 +162,55 @@ function style_recommendation_for_user($user_id, $use_openai=false) {
 /* -------- Optional AI Integration -------- */
 
 function openai_call($prompt) {
-    if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) return null;
+    if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) {
+        return "❌ Missing OpenAI key.";
+    }
+
     $api_key = OPENAI_API_KEY;
-    $ch = curl_init('https://api.openai.com/v1/chat/completions');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer '.$api_key
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    $project_id = 'proj_cYGjyXocCKs5DLGrFNeWng2r'; // 🔹 Replace with your actual Project ID
+
+    $url = 'https://api.openai.com/v1/chat/completions';
+    $payload = [
         'model' => 'gpt-4o-mini',
         'messages' => [
             ['role' => 'system', 'content' => 'You are a salon assistant.'],
             ['role' => 'user', 'content' => $prompt]
         ],
         'max_tokens' => 200
-    ]));
-    $res = curl_exec($ch);
+    ];
+
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $api_key,
+        'OpenAI-Project: ' . $project_id  // ✅ Required for project keys
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
     curl_close($ch);
-    $json = json_decode($res, true);
-    return $json['choices'][0]['message']['content'] ?? null;
+
+    if ($error) {
+        return "❌ cURL error: $error";
+    }
+
+    if ($httpCode !== 200) {
+        return "❌ OpenAI API error ($httpCode): $response";
+    }
+
+    $data = json_decode($response, true);
+    return $data['choices'][0]['message']['content'] ?? "⚠️ No AI response.";
 }
+
 
 /* -------- Cloudinary Integration -------- */
 

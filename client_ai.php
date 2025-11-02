@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'client') {
     exit;
 }
 
+
 // Store user name for display
 $_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
 
@@ -258,37 +259,66 @@ function getQuickQuestionResponse($message) {
 
 // Enhanced OpenAI function with better context handling
 function openai_call_with_context($systemPrompt, $userPrompt) {
-    if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) return null;
-    
-    $api_key = OPENAI_API_KEY;
-    $ch = curl_init('https://api.openai.com/v1/chat/completions');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer '.$api_key
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        'model' => 'gpt-4o-mini',
-        'messages' => [
-            ['role' => 'system', 'content' => $systemPrompt],
-            ['role' => 'user', 'content' => $userPrompt]
+    // Ensure OpenAI API key is loaded
+    if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
+        error_log("⚠️ Missing OpenAI API key in bootstrap.php");
+        return "⚠️ Missing OpenAI API key. Please check your configuration.";
+    }
+
+    $api_key = trim(OPENAI_API_KEY);
+    $url = "https://api.openai.com/v1/chat/completions";
+
+    $payload = [
+        "model" => "gpt-4o-mini",
+        "messages" => [
+            ["role" => "system", "content" => $systemPrompt],
+            ["role" => "user", "content" => $userPrompt]
         ],
-        'max_tokens' => 300,
-        'temperature' => 0.7
-    ]));
-    
+        "temperature" => 0.7,
+        "max_tokens" => 400
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json",
+            "Authorization: Bearer {$api_key}"
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
     $res = curl_exec($ch);
+    $err = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
-    if ($httpCode !== 200) {
-        error_log("OpenAI API Error: HTTP $httpCode - $res");
-        return null;
+
+    if ($err) {
+        error_log("OpenAI API Error: $err");
+        return "❌ Connection error to AI service. Please try again.";
     }
-    
-    $json = json_decode($res, true);
-    return $json['choices'][0]['message']['content'] ?? null;
+
+    $data = json_decode($res, true);
+
+    if ($httpCode !== 200) {
+        error_log("OpenAI HTTP $httpCode Response: $res");
+        if ($httpCode === 401) {
+            return "❌ Invalid OpenAI API key. Please check your bootstrap.php file.";
+        }
+        return "❌ AI request failed with status $httpCode.";
+    }
+
+    if (isset($data['choices'][0]['message']['content'])) {
+        return trim($data['choices'][0]['message']['content']);
+    } else {
+        error_log("Unexpected OpenAI response: " . $res);
+        return "⚠️ AI did not return a valid message.";
+    }
 }
+
+
 
 include 'inc/header_sidebar.php';
 ?>
@@ -486,8 +516,13 @@ include 'inc/header_sidebar.php';
 </div>
 
 <style>
+:root {
+    --salon-primary: #e75480;
+    --salon-primary-dark: #d14672;
+}
+
 .chat-card {
-    height: 600px;
+    height: 650px;
     display: flex;
     flex-direction: column;
 }
@@ -552,7 +587,7 @@ include 'inc/header_sidebar.php';
 }
 
 .user-message .message-bubble {
-    background: var(--salon-primary);
+    background: #007bff;
     color: white;
     border-bottom-right-radius: 4px;
 }

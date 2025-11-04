@@ -138,12 +138,6 @@ include 'inc/header_sidebar.php';
                             View Reports
                         </a>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="admin_services.php" class="btn btn-outline-salon w-100 py-3">
-                            <i class="bi bi-gear d-block fs-4 mb-2"></i>
-                            Settings
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>

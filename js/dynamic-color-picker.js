@@ -21,7 +21,7 @@ class DynamicColorPicker {
 
     createColorPicker() {
         const picker = document.createElement('div');
-        picker.className = 'color-picker';
+        picker.className = 'color-picker collapsed';
         picker.innerHTML = `
             <div class="color-picker-header">
                 <span class="color-picker-title">🎨 Colors</span>
@@ -254,8 +254,8 @@ class DynamicColorPicker {
         style.textContent = `
             .color-notification {
                 position: fixed;
-                top: 80px;
-                right: 20px;
+                bottom: 100px;
+                left: 20px;
                 background: var(--user-primary);
                 color: white;
                 padding: 12px 20px;
@@ -264,13 +264,13 @@ class DynamicColorPicker {
                 font-weight: 500;
                 box-shadow: var(--user-shadow-lg);
                 z-index: 10000;
-                animation: slideInRight 0.3s ease-out;
+                animation: slideInLeft 0.3s ease-out;
                 max-width: 250px;
             }
 
-            @keyframes slideInRight {
+            @keyframes slideInLeft {
                 from {
-                    transform: translateX(100%);
+                    transform: translateX(-100%);
                     opacity: 0;
                 }
                 to {
@@ -281,8 +281,8 @@ class DynamicColorPicker {
 
             @media (max-width: 768px) {
                 .color-notification {
-                    top: 60px;
-                    right: 10px;
+                    bottom: 80px;
+                    left: 10px;
                     font-size: 12px;
                     padding: 10px 16px;
                 }
@@ -298,7 +298,7 @@ class DynamicColorPicker {
         
         // Remove notification after 3 seconds
         setTimeout(() => {
-            notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+            notification.style.animation = 'slideInLeft 0.3s ease-out reverse';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);

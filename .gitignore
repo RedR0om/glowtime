@@ -1,0 +1,7 @@
+﻿# Environment files
+.env
+
+
+# Config file (contains sensitive data)
+inc/config.php
+

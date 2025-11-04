@@ -1,0 +1,53 @@
+===============================================================================
+  QUICK DEPLOYMENT GUIDE FOR INFINITYFREE
+===============================================================================
+
+STEP 1: CREATE CONFIG FILE
+---------------------------
+1. Copy inc/config.example.php to inc/config.php
+2. Open inc/config.php in InfinityFree file manager editor
+3. Replace placeholder values with your actual credentials:
+
+   OPENAI_API_KEY = your_actual_openai_key
+   DB_HOST = localhost (or check InfinityFree database panel)
+   DB_NAME = your_database_name (from InfinityFree panel)
+   DB_USER = your_database_user (from InfinityFree panel)
+   DB_PASS = your_database_password (from InfinityFree panel)
+   CLOUDINARY_URL = your_cloudinary_url
+   CLOUDINARY_UPLOAD_PRESET = your_preset
+
+STEP 2: GET DATABASE CREDENTIALS
+---------------------------------
+1. Log into InfinityFree control panel
+2. Go to "MySQL Databases" section
+3. Copy these values:
+   - Database Host (usually localhost)
+   - Database Name (starts with epiz_)
+   - Database Username (starts with epiz_)
+   - Database Password
+
+STEP 3: UPLOAD FILES
+--------------------
+1. Upload all files via FTP or File Manager
+2. Make sure inc/config.php exists with your credentials
+3. Verify .env file is NOT uploaded (not needed)
+
+STEP 4: TEST
+------------
+1. Visit your website
+2. Test chatbot - should work with OpenAI
+3. Test database connection
+
+TROUBLESHOOTING
+---------------
+OpenAI not working?
+- Check OPENAI_API_KEY is correct in inc/config.php
+- Verify API key is valid
+
+Database error?
+- Check DB_HOST - might be mysql.epizy.com instead of localhost
+- Verify all database credentials match InfinityFree panel
+
+===============================================================================
+IMPORTANT: Keep inc/config.php secure - it contains sensitive information!
+===============================================================================

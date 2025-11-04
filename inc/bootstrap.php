@@ -3,19 +3,70 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Load environment variables from .env file
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        return;
+    }
+    
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Skip comments
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        
+        // Parse KEY=VALUE format
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            
+            // Remove quotes if present
+            if ((substr($value, 0, 1) === '"' && substr($value, -1) === '"') || 
+                (substr($value, 0, 1) === "'" && substr($value, -1) === "'")) {
+                $value = substr($value, 1, -1);
+            }
+            
+            // Set as environment variable if not already set
+            if (!array_key_exists($key, $_ENV)) {
+                $_ENV[$key] = $value;
+                putenv("$key=$value");
+            }
+        }
+    }
+}
+
+// Try to load from config.php first (for production/InfinityFree)
+$configPath = __DIR__ . '/config.php';
+if (file_exists($configPath)) {
+    require_once $configPath;
+}
+
+// Load .env file from project root (for local development)
+$envPath = __DIR__ . '/../.env';
+loadEnv($envPath);
+
 // OpenAI API Configuration
-// define('OPENAI_API_KEY', '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');
-define('OPENAI_API_KEY', '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');
+// Priority: config.php constant > .env file > system env > empty string
+if (!defined('OPENAI_API_KEY')) {
+    define('OPENAI_API_KEY', $_ENV['OPENAI_API_KEY'] ?? getenv('OPENAI_API_KEY') ?: '');
+}
 
 // Cloudinary Configuration
-define('CLOUDINARY_URL', 'https://api.cloudinary.com/v1_1/dkcjftn5c/image/upload');
-define('CLOUDINARY_UPLOAD_PRESET', 'tmtcrs');
+if (!defined('CLOUDINARY_URL')) {
+    define('CLOUDINARY_URL', $_ENV['CLOUDINARY_URL'] ?? getenv('CLOUDINARY_URL') ?: 'https://api.cloudinary.com/v1_1/dkcjftn5c/image/upload');
+}
+if (!defined('CLOUDINARY_UPLOAD_PRESET')) {
+    define('CLOUDINARY_UPLOAD_PRESET', $_ENV['CLOUDINARY_UPLOAD_PRESET'] ?? getenv('CLOUDINARY_UPLOAD_PRESET') ?: 'tmtcrs');
+}
 
 // Database connection
-$host = "localhost";
-$db   = "glowtime_system";   // ✅ your DB name
-$user = "root";
-$pass = "";
+// Priority: config.php constants > .env file > system env > defaults
+$host = defined('DB_HOST') ? DB_HOST : ($_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: "localhost");
+$db   = defined('DB_NAME') ? DB_NAME : ($_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: "glowtime_system");
+$user = defined('DB_USER') ? DB_USER : ($_ENV['DB_USER'] ?? getenv('DB_USER') ?: "root");
+$pass = defined('DB_PASS') ? DB_PASS : ($_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: "");
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);

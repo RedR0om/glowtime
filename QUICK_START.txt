@@ -1,0 +1,26 @@
+QUICK START - INFINITYFREE DEPLOYMENT
+======================================
+
+COPY, PASTE, UPLOAD - That's it!
+
+STEP 1: COPY
+------------
+Copy inc/config.example.php
+Rename it to inc/config.php
+
+STEP 2: PASTE VALUES
+--------------------
+Open inc/config.php
+Replace the placeholder values with your actual:
+- OPENAI_API_KEY (your OpenAI key)
+- DB_HOST, DB_NAME, DB_USER, DB_PASS (from InfinityFree MySQL panel)
+- CLOUDINARY_URL, CLOUDINARY_UPLOAD_PRESET (your Cloudinary settings)
+
+STEP 3: UPLOAD
+--------------
+Upload all files to InfinityFree (via FTP or File Manager)
+Make sure inc/config.php is included
+
+Done! The system will automatically use inc/config.php
+
+For detailed instructions, see DEPLOYMENT.md or DEPLOY.txt

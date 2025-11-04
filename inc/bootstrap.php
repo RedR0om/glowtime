@@ -4,7 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // OpenAI API Configuration
-define('OPENAI_API_KEY', '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');
+// define('OPENAI_API_KEY', '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');
+define('OPENAI_API_KEY', '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');
 
 // Cloudinary Configuration
 define('CLOUDINARY_URL', 'https://api.cloudinary.com/v1_1/dkcjftn5c/image/upload');

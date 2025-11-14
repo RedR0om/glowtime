@@ -31,6 +31,18 @@ if (isset($_SESSION['booking_success'])) {
     unset($_SESSION['booking_success']); // Clear after displaying
 }
 
+$bookingQr = null;
+if (isset($_SESSION['booking_qr'])) {
+    $bookingQr = $_SESSION['booking_qr'];
+    unset($_SESSION['booking_qr']);
+}
+
+$bookingQrError = null;
+if (isset($_SESSION['booking_qr_error'])) {
+    $bookingQrError = $_SESSION['booking_qr_error'];
+    unset($_SESSION['booking_qr_error']);
+}
+
 // Get flash messages from URL
 if (isset($_GET['success'])) {
     $success = $_GET['success'];
@@ -75,6 +87,29 @@ include 'inc/header_sidebar.php';
 <?php if ($success): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle"></i> <?= htmlspecialchars($success) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if ($bookingQr): ?>
+    <div class="card mb-4">
+        <div class="card-body text-center">
+            <h5 class="text-salon mb-3">
+                <i class="bi bi-qr-code"></i> Your Booking QR Code
+            </h5>
+            <div class="d-flex justify-content-center mb-3">
+                <img src="<?= htmlspecialchars($bookingQr['image_url']) ?>" alt="Booking QR Code" class="img-fluid" style="max-width: 240px;">
+            </div>
+            <p class="text-muted mb-3">
+                Screenshot or download this QR code and show it to the stylist to verify your booking easily.
+            </p>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($bookingQrError): ?>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($bookingQrError) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -181,6 +216,17 @@ include 'inc/header_sidebar.php';
                                             Payment: <?= ucfirst($a['payment_status'] ?? 'pending') ?>
                                         </span>
                                     </div>
+
+                                    <?php if (!empty($a['qr_code_url'])): ?>
+                                        <div class="mb-2">
+                                            <button type="button"
+                                                    class="btn btn-salon btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#qrModal<?= (int)$a['id'] ?>">
+                                                <i class="bi bi-qr-code"></i> View QR Code
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
                                     
                                     <?php if ($a['status'] === 'pending' && !$isPast): ?>
                                         <div class="mt-2">
@@ -195,6 +241,34 @@ include 'inc/header_sidebar.php';
                             </div>
                         </div>
                     </div>
+
+                    <?php if (!empty($a['qr_code_url'])): ?>
+                        <div class="modal fade" id="qrModal<?= (int)$a['id'] ?>" tabindex="-1" aria-labelledby="qrModalLabel<?= (int)$a['id'] ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="qrModalLabel<?= (int)$a['id'] ?>">
+                                            <i class="bi bi-qr-code"></i> Booking QR Code
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <div class="mb-3">
+                                            <img src="<?= htmlspecialchars($a['qr_code_url']) ?>" alt="QR Code for <?= htmlspecialchars($a['booking_ref'] ?? 'appointment') ?>" class="img-fluid" style="max-width: 280px;">
+                                        </div>
+                                        <p class="text-muted mb-3">
+                                            Screenshot or download this QR code and show it to the stylist to verify your booking easily.
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>

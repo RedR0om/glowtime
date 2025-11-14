@@ -47,6 +47,12 @@ if (file_exists($configPath)) {
 $envPath = __DIR__ . '/../.env';
 loadEnv($envPath);
 
+// Environment indicator (defaults to 'development' if not provided)
+if (!defined('ENVIRONMENT')) {
+    $envValue = $_ENV['ENVIRONMENT'] ?? getenv('ENVIRONMENT') ?: 'development';
+    define('ENVIRONMENT', $envValue);
+}
+
 // OpenAI API Configuration
 // Priority: config.php constant > .env file > system env > empty string
 if (!defined('OPENAI_API_KEY')) {

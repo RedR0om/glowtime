@@ -37,6 +37,129 @@ function get_available_stylists($date) {
     return array_values($availableStaff); // Re-index array
 }
 
+/**
+ * Upload binary QR content to Cloudinary.
+ *
+ * @param string $binaryContent
+ * @param string $bookingRef
+ * @return array ['success' => bool, 'url' => string, 'error' => string]
+ */
+function uploadQrToCloudinary($binaryContent, $bookingRef) {
+    $tempFile = tempnam(sys_get_temp_dir(), 'qr_');
+    if ($tempFile === false) {
+        return ['success' => false, 'url' => '', 'error' => 'Unable to create temporary file for QR upload.'];
+    }
+
+    $bytesWritten = file_put_contents($tempFile, $binaryContent);
+    if ($bytesWritten === false) {
+        @unlink($tempFile);
+        return ['success' => false, 'url' => '', 'error' => 'Unable to write QR image to temporary file.'];
+    }
+
+    $qrFolder = 'glowtime/qr_codes';
+    $publicId = 'qr_code_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', strtolower($bookingRef)) . '_' . time();
+
+    try {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, CLOUDINARY_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+
+        $postFields = [
+            'file' => new CURLFile($tempFile, 'image/png', $bookingRef . '.png'),
+            'upload_preset' => CLOUDINARY_UPLOAD_PRESET,
+            'folder' => $qrFolder,
+            'public_id' => $publicId,
+        ];
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    } catch (Exception $e) {
+        @unlink($tempFile);
+        return ['success' => false, 'url' => '', 'error' => 'QR upload error: ' . $e->getMessage()];
+    }
+
+    @unlink($tempFile);
+
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if (isset($result['secure_url'])) {
+            return ['success' => true, 'url' => $result['secure_url'], 'error' => ''];
+        }
+    }
+
+    return ['success' => false, 'url' => '', 'error' => 'QR upload failed: ' . $response];
+}
+
+/**
+ * Generate a QR code image for the booking reference.
+ *
+ * @param string $bookingRef
+ * @return array Returns array with metadata including Cloudinary URL or error message.
+ */
+function generate_booking_qr($bookingRef) {
+    $target_url = "";
+
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        $target_url = "https://glowtime.ct.ws/appointments.php?search=";
+    } else {
+        $target_url = "http://glowtime.test/appointments.php?search=";
+    }
+
+    $qrTargetUrl = $target_url . urlencode($bookingRef);
+
+    $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrTargetUrl);
+
+    $qrImageContent = null;
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($qrApiUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        $qrImageContent = curl_exec($ch);
+        curl_close($ch);
+    }
+
+    if ($qrImageContent === false || $qrImageContent === null) {
+        $qrImageContent = @file_get_contents($qrApiUrl);
+    }
+
+    if ($qrImageContent === false || empty($qrImageContent)) {
+        return [
+            'success' => false,
+            'url' => '',
+            'download_name' => $bookingRef . '.png',
+            'target_url' => $qrTargetUrl,
+            'error' => 'Unable to generate QR code from API.',
+        ];
+    }
+
+    $uploadResult = uploadQrToCloudinary($qrImageContent, $bookingRef);
+
+    if (!$uploadResult['success']) {
+        return [
+            'success' => false,
+            'url' => '',
+            'download_name' => $bookingRef . '.png',
+            'target_url' => $qrTargetUrl,
+            'error' => $uploadResult['error'],
+        ];
+    }
+
+    return [
+        'success' => true,
+        'url'    => $uploadResult['url'],
+        'download_name' => $bookingRef . '.png',
+        'target_url'    => $qrTargetUrl,
+        'error' => '',
+    ];
+}
+
 // Handle submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $service_id   = $_POST['service_id'] ?? null;
@@ -101,9 +224,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Generate booking ref
                     $bookingRef = "BOOK-" . date("Ymd") . "-" . rand(100, 999);
 
+                    // Generate QR code uploaded to Cloudinary
+                    $qrData = generate_booking_qr($bookingRef);
+                    $qrCodeUrl = null;
+                    if ($qrData['success']) {
+                        $qrCodeUrl = $qrData['url'];
+                        $_SESSION['booking_qr'] = [
+                            'image_url' => $qrData['url'],
+                            'download_name' => $qrData['download_name'],
+                            'target_url' => $qrData['target_url'],
+                        ];
+                    } else {
+                        $_SESSION['booking_qr_error'] = "We couldn't generate your QR code automatically. You can still view your booking details in the history page.";
+                    }
+
                     $stmt = pdo()->prepare("INSERT INTO appointments 
-                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, payment_status, status, assigned_staff_id) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?)");
+                        (booking_ref, client_id, service_id, booking_type, location_address, style, start_at, end_at, down_payment, transport_fee, payment_proof, qr_code_url, payment_status, status, assigned_staff_id) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?)");
                     $stmt->execute([
                         $bookingRef,
                         $_SESSION['user_id'],
@@ -116,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $down_payment,
                         $transportFee,
                         $proofFile,
+                        $qrCodeUrl,
                         $assigned_staff_id
                     ]);
 
@@ -461,8 +599,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       element.classList.add('selected');
       
       // Update selected service info
-      document.getElementById("selectedServiceInfo").style.display = "block";
-      document.getElementById("selectedServiceName").innerText = element.querySelector('.card-title').innerText;
+      const selectedInfoBox = document.getElementById("selectedServiceInfo");
+      const selectedInfoName = document.getElementById("selectedServiceName");
+      if (selectedInfoBox && selectedInfoName) {
+        selectedInfoBox.style.display = "block";
+        selectedInfoName.innerText = element.querySelector('.card-title').innerText;
+      }
       
       // Calculate and update down payment with transport
       calculateDownPayment(price);
@@ -481,7 +623,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       });
       
       // Hide selected service info
-      document.getElementById("selectedServiceInfo").style.display = "none";
+      const selectedInfoBox = document.getElementById("selectedServiceInfo");
+      const selectedInfoName = document.getElementById("selectedServiceName");
+      if (selectedInfoBox) {
+        selectedInfoBox.style.display = "none";
+      }
+      if (selectedInfoName) {
+        selectedInfoName.innerText = "";
+      }
       
       // Reset down payment
       updateDownPayment();

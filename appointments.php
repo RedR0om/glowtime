@@ -207,6 +207,7 @@ $filter_booking_type = $_GET['filter_booking_type'] ?? '';
 $filter_date_from = $_GET['filter_date_from'] ?? '';
 $filter_date_to = $_GET['filter_date_to'] ?? '';
 $search_query = $_GET['search'] ?? '';
+$fromQr = isset($_GET['from_qr']) && $_GET['from_qr'] === '1';
 
 // --- Fetch appointments with filters (safe)
 try {
@@ -326,6 +327,7 @@ function statusBadgeClass($status) {
 <?php endif; ?>
 
 <!-- Filters Section -->
+<?php if (!$fromQr): ?>
 <div class="card mb-4">
     <div class="card-header">
         <h5 class="mb-0">
@@ -455,7 +457,9 @@ function statusBadgeClass($status) {
             </div>
         </div>
     </div>
+    </div>
 </div>
+<?php endif; ?>
 
 <!-- Appointments Table -->
 <div class="card table-salon">

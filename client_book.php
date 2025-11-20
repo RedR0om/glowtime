@@ -102,12 +102,12 @@ function uploadQrToCloudinary($binaryContent, $bookingRef) {
  */
 function generate_booking_qr($bookingRef) {
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
-        $baseUrl = "https://glowtime.ct.ws/appointments.php";
+        $baseUrl = "https://glowtime.ct.ws/invoice.php";
     } else {
-        $baseUrl = "http://glowtime.test/appointments.php";
+        $baseUrl = "http://glowtime.test/invoice.php";
     }
 
-    $qrTargetUrl = $baseUrl . '?search=' . urlencode($bookingRef) . '&from_qr=1';
+    $qrTargetUrl = $baseUrl . '?ref=' . urlencode($bookingRef);
 
     $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrTargetUrl);
 

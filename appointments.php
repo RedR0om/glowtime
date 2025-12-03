@@ -18,14 +18,7 @@ $error = '';
 // Simple HTML-safe getter
 function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
-/**
- * Simple email sender (silent on failure)
- */
-function sendEmail($to, $subject, $message) {
-    $headers = "From: Glowtime Salon <noreply@glowtime.com>\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    @mail($to, $subject, $message, $headers);
-}
+// Email function is now in inc/bootstrap.php
 
 // --- Handle POST actions (Verify / Reject / Create) using PRG to avoid double-submits
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -107,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt2->execute([$client_id]);
                     $client = $stmt2->fetch(PDO::FETCH_ASSOC);
                     if ($client) {
-                        sendEmail(
+                        $emailResult = sendEmail(
                             $client['email'],
                             "Appointment Confirmed - Glowtime Salon",
                             "<p>Hello <strong>" . h($client['name']) . "</strong>,</p>
@@ -120,6 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              </ul>
                              <p>✨ We look forward to serving you!</p>"
                         );
+                        if (!$emailResult['success']) {
+                            error_log("Failed to send appointment confirmation email: " . $emailResult['error']);
+                        }
                     }
 
                     header('Location: appointments.php?success=' . urlencode('Appointment created and confirmed successfully.'));
@@ -153,13 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt2->execute([$id]);
             $row = $stmt2->fetch(PDO::FETCH_ASSOC);
             if ($row) {
-                sendEmail(
+                $emailResult = sendEmail(
                     $row['email'],
                     "Your Booking Confirmed - Glowtime",
                     "<p>Hello <strong>" . h($row['name']) . "</strong>,</p>
                      <p>Your booking (<strong>" . h($row['booking_ref']) . "</strong>) has been <b style='color:green'>confirmed</b>.</p>
                      <p>✨ Thank you for choosing Glowtime Salon!</p>"
                 );
+                if (!$emailResult['success']) {
+                    error_log("Failed to send booking confirmation email: " . $emailResult['error']);
+                }
             }
 
             header('Location: appointments.php?success=' . urlencode('Payment verified and booking confirmed.'));
@@ -174,13 +173,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt2->execute([$id]);
             $row = $stmt2->fetch(PDO::FETCH_ASSOC);
             if ($row) {
-                sendEmail(
+                $emailResult = sendEmail(
                     $row['email'],
                     "Booking Cancelled - Glowtime",
                     "<p>Hello <strong>" . h($row['name']) . "</strong>,</p>
                      <p>Your booking (<strong>" . h($row['booking_ref']) . "</strong>) has been <b style='color:red'>rejected</b> due to invalid payment proof.</p>
                      <p>⚠️ If you believe this was a mistake, please contact support.</p>"
                 );
+                if (!$emailResult['success']) {
+                    error_log("Failed to send booking rejection email: " . $emailResult['error']);
+                }
             }
 
             header('Location: appointments.php?success=' . urlencode('Payment rejected and booking cancelled.'));

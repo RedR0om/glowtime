@@ -12,6 +12,11 @@ $_SESSION['user_name'] = get_user_name($_SESSION['user_id']);
 
 $success = $error = "";
 
+// Simple HTML-safe getter
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+// Email function is now in inc/bootstrap.php
+
 /**
  * Get available stylists for a specific date
  * Excludes stylists who are marked as absent on the given date
@@ -254,6 +259,158 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $qrCodeUrl,
                         $assigned_staff_id
                     ]);
+
+                    // Get client email and name for notification
+                    $clientEmail = get_user_email($_SESSION['user_id']);
+                    $clientName = get_user_name($_SESSION['user_id']);
+                    
+                    // Get stylist name
+                    $stylistName = 'Not Assigned';
+                    if ($assigned_staff_id) {
+                        $stmtStylist = pdo()->prepare("SELECT staff_name FROM staff WHERE staff_id = ?");
+                        $stmtStylist->execute([$assigned_staff_id]);
+                        $stylist = $stmtStylist->fetch(PDO::FETCH_ASSOC);
+                        if ($stylist) {
+                            $stylistName = $stylist['staff_name'];
+                        }
+                    }
+
+                    // Send booking confirmation email
+                    if ($clientEmail) {
+                        $invoiceUrl = (defined('ENVIRONMENT') && ENVIRONMENT === 'production') 
+                            ? "https://glowtime.ct.ws/invoice.php?ref=" . urlencode($bookingRef)
+                            : "http://glowtime.test/invoice.php?ref=" . urlencode($bookingRef);
+                        
+                        $emailMessage = "
+                        <html>
+                        <head>
+                            <style>
+                                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                .header { background: linear-gradient(135deg, #e91e63 0%, #f06292 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                                .content { background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; }
+                                .booking-details { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #e91e63; }
+                                .detail-row { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+                                .detail-row:last-child { border-bottom: none; }
+                                .label { font-weight: bold; color: #666; display: inline-block; width: 150px; }
+                                .value { color: #333; }
+                                .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+                                .status-pending { background: #ffc107; color: #000; }
+                                .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+                                .btn { display: inline-block; padding: 12px 24px; background: #e91e63; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='container'>
+                                <div class='header'>
+                                    <h2>🌸 Glowtime Salon</h2>
+                                    <p>Booking Confirmation</p>
+                                </div>
+                                <div class='content'>
+                                    <p>Hello <strong>" . h($clientName) . "</strong>,</p>
+                                    <p>Thank you for booking with Glowtime Salon! Your appointment has been successfully created.</p>
+                                    
+                                    <div class='booking-details'>
+                                        <h3 style='margin-top: 0; color: #e91e63;'>📋 Booking Details</h3>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Booking Reference:</span>
+                                            <span class='value'><strong>" . h($bookingRef) . "</strong></span>
+                                        </div>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Service:</span>
+                                            <span class='value'>" . h($service['name']) . "</span>
+                                        </div>
+                                        
+                                        " . (!empty($style) ? "
+                                        <div class='detail-row'>
+                                            <span class='label'>Preferred Style:</span>
+                                            <span class='value'>" . h($style) . "</span>
+                                        </div>
+                                        " : "") . "
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Stylist:</span>
+                                            <span class='value'>" . h($stylistName) . "</span>
+                                        </div>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Date:</span>
+                                            <span class='value'>" . date("F d, Y", strtotime($start_at)) . "</span>
+                                        </div>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Time:</span>
+                                            <span class='value'>" . date("h:i A", strtotime($start_at)) . " - " . date("h:i A", strtotime($end_at)) . "</span>
+                                        </div>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Booking Type:</span>
+                                            <span class='value'>" . ($bookingType === 'home' ? '🏠 Home Service' : '🏢 Salon Visit') . "</span>
+                                        </div>
+                                        
+                                        " . ($bookingType === 'home' && !empty($location) ? "
+                                        <div class='detail-row'>
+                                            <span class='label'>Address:</span>
+                                            <span class='value'>" . h($location) . "</span>
+                                        </div>
+                                        " : "") . "
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Down Payment:</span>
+                                            <span class='value'><strong>₱" . number_format($down_payment, 2) . "</strong></span>
+                                        </div>
+                                        
+                                        " . ($transportFee > 0 ? "
+                                        <div class='detail-row'>
+                                            <span class='label'>Transport Fee:</span>
+                                            <span class='value'>₱" . number_format($transportFee, 2) . "</span>
+                                        </div>
+                                        " : "") . "
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Payment Status:</span>
+                                            <span class='value'><span class='status-badge status-pending'>Pending Verification</span></span>
+                                        </div>
+                                        
+                                        <div class='detail-row'>
+                                            <span class='label'>Appointment Status:</span>
+                                            <span class='value'><span class='status-badge status-pending'>Pending</span></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p><strong>📌 What happens next?</strong></p>
+                                    <p>Your booking is now pending admin verification. Our team will review your payment proof (if uploaded) and confirm your appointment within 24 hours. You will receive another email once your booking is confirmed.</p>
+                                    
+                                    <div style='text-align: center;'>
+                                        <a href='" . $invoiceUrl . "' class='btn'>View Booking Invoice</a>
+                                    </div>
+                                    
+                                    <p style='margin-top: 20px;'>If you have any questions, please don't hesitate to contact us.</p>
+                                    
+                                    <p>✨ We look forward to serving you!</p>
+                                    <p><strong>Glowtime Salon Team</strong></p>
+                                </div>
+                                <div class='footer'>
+                                    <p>This is an automated email. Please do not reply to this message.</p>
+                                    <p>&copy; " . date('Y') . " Glowtime Salon. All rights reserved.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>";
+                        
+                        $emailResult = sendEmail(
+                            $clientEmail,
+                            "Booking Confirmation - " . h($bookingRef) . " | Glowtime Salon",
+                            $emailMessage
+                        );
+                        
+                        // Log email result (optional - for debugging)
+                        if (!$emailResult['success']) {
+                            error_log("Failed to send booking confirmation email to {$clientEmail}: " . $emailResult['error']);
+                        }
+                    }
 
                     // Redirect to history page with success message
                     $_SESSION['booking_success'] = "✅ Booking successful! Your reference is ".$bookingRef.". Please wait for admin verification.";

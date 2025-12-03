@@ -3,6 +3,15 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Load Composer autoloader early (for PHPMailer)
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
+// PHPMailer classes
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Load environment variables from .env file
 function loadEnv($path) {
     if (!file_exists($path)) {
@@ -329,4 +338,161 @@ function uploadToCloudinary($fileInputName, $folder = 'glowtime/payment_proofs')
     } catch (Exception $e) {
         return ['success' => false, 'url' => '', 'error' => 'Upload error: ' . $e->getMessage()];
     }
+}
+
+/* -------- Email Configuration -------- */
+
+// Email configuration - can be set via .env file or environment variables
+if (!defined('EMAIL_ENABLED')) {
+    define('EMAIL_ENABLED', $_ENV['EMAIL_ENABLED'] ?? getenv('EMAIL_ENABLED') ?: 'true');
+}
+
+if (!defined('EMAIL_METHOD')) {
+    define('EMAIL_METHOD', $_ENV['EMAIL_METHOD'] ?? getenv('EMAIL_METHOD') ?: 'smtp'); // 'smtp' or 'mail'
+}
+
+// SMTP Configuration
+if (!defined('SMTP_HOST')) {
+    define('SMTP_HOST', $_ENV['SMTP_HOST'] ?? getenv('SMTP_HOST') ?: 'smtp.gmail.com');
+}
+if (!defined('SMTP_PORT')) {
+    define('SMTP_PORT', $_ENV['SMTP_PORT'] ?? getenv('SMTP_PORT') ?: '587');
+}
+if (!defined('SMTP_USERNAME')) {
+    define('SMTP_USERNAME', $_ENV['SMTP_USERNAME'] ?? getenv('SMTP_USERNAME') ?: 'accuracyarcher27@gmail.com');
+}
+if (!defined('SMTP_PASSWORD')) {
+    // Gmail app password - spaces will be removed automatically in sendEmailSMTP
+    define('SMTP_PASSWORD', $_ENV['SMTP_PASSWORD'] ?? getenv('SMTP_PASSWORD') ?: 'rzkvndwusdvafwrs');
+}
+if (!defined('SMTP_FROM_EMAIL')) {
+    define('SMTP_FROM_EMAIL', $_ENV['SMTP_FROM_EMAIL'] ?? getenv('SMTP_FROM_EMAIL') ?: 'accuracyarcher27@gmail.com');
+}
+if (!defined('SMTP_FROM_NAME')) {
+    define('SMTP_FROM_NAME', $_ENV['SMTP_FROM_NAME'] ?? getenv('SMTP_FROM_NAME') ?: 'System Email');
+}
+if (!defined('SMTP_SECURE')) {
+    define('SMTP_SECURE', $_ENV['SMTP_SECURE'] ?? getenv('SMTP_SECURE') ?: 'tls'); // 'tls' or 'ssl'
+}
+
+/**
+ * Send email using SMTP (PHPMailer) or PHP mail() function
+ * 
+ * @param string $to Recipient email address
+ * @param string $subject Email subject
+ * @param string $message HTML email message
+ * @param bool $debug Enable debug mode (logs to error_log)
+ * @return array ['success' => bool, 'error' => string]
+ */
+function sendEmail($to, $subject, $message, $debug = false) {
+    // Check if email is enabled
+    if (strtolower(EMAIL_ENABLED) !== 'true') {
+        if ($debug) {
+            error_log("Email is disabled. Would send to: {$to}");
+        }
+        return ['success' => false, 'error' => 'Email is disabled'];
+    }
+
+    // Validate email address
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email address: {$to}";
+        if ($debug) {
+            error_log("Email Error: {$error}");
+        }
+        return ['success' => false, 'error' => $error];
+    }
+
+    // Use SMTP if configured, otherwise fall back to mail()
+    if (EMAIL_METHOD === 'smtp' && !empty(SMTP_USERNAME) && !empty(SMTP_PASSWORD)) {
+        return sendEmailSMTP($to, $subject, $message, $debug);
+    } else {
+        return sendEmailMail($to, $subject, $message, $debug);
+    }
+}
+
+/**
+ * Send email using PHPMailer with SMTP
+ */
+function sendEmailSMTP($to, $subject, $message, $debug = false) {
+    try {
+        // Check if PHPMailer is available
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            // Fallback to mail() if PHPMailer not available
+            if ($debug) {
+                error_log("PHPMailer not found, falling back to mail()");
+            }
+            return sendEmailMail($to, $subject, $message, $debug);
+        }
+
+        $mail = new PHPMailer(true);
+
+        // Server settings
+        $mail->SMTPDebug = $debug ? 2 : 0;
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        // Remove spaces from app password (Gmail app passwords sometimes have spaces)
+        $mail->Password = str_replace(' ', '', SMTP_PASSWORD);
+        $mail->SMTPSecure = SMTP_SECURE === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = (int)SMTP_PORT;
+        
+        if ($debug) {
+            $mail->Debugoutput = function($str, $level) {
+                error_log("PHPMailer Debug: {$str}");
+                // Also output to browser if in web context
+                if (php_sapi_name() !== 'cli') {
+                    echo "<pre>PHPMailer: " . htmlspecialchars($str) . "</pre>";
+                }
+            };
+        }
+
+        // Recipients
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->addAddress($to);
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $message;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->send();
+        
+        if ($debug) {
+            error_log("Email sent successfully to: {$to}");
+        }
+        
+        return ['success' => true, 'error' => ''];
+        
+    } catch (Exception $e) {
+        $error = "Email sending failed: " . (isset($mail) ? $mail->ErrorInfo : $e->getMessage());
+        error_log($error);
+        return ['success' => false, 'error' => $error];
+    }
+}
+
+/**
+ * Send email using PHP mail() function (fallback)
+ */
+function sendEmailMail($to, $subject, $message, $debug = false) {
+    $headers = "From: " . SMTP_FROM_NAME . " <" . SMTP_FROM_EMAIL . ">\r\n";
+    $headers .= "Reply-To: " . SMTP_FROM_EMAIL . "\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
+
+    $result = @mail($to, $subject, $message, $headers);
+    
+    if ($debug) {
+        if ($result) {
+            error_log("Email sent via mail() to: {$to}");
+        } else {
+            error_log("Email failed via mail() to: {$to}");
+        }
+    }
+    
+    return [
+        'success' => $result,
+        'error' => $result ? '' : 'mail() function returned false. Check server mail configuration.'
+    ];
 }

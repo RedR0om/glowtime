@@ -63,6 +63,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="admin_gallery.php" class="nav-link <?= $current_page === 'admin_gallery.php' ? 'active' : '' ?>">
+                            <i class="bi bi-images"></i>
+                            Gallery
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="reports.php" class="nav-link <?= $current_page === 'reports.php' ? 'active' : '' ?>">
                             <i class="bi bi-bar-chart"></i>
                             Reports

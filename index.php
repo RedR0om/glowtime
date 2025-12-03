@@ -962,6 +962,9 @@ if (isset($_SESSION['user_id'])) {
                         <a class="nav-link" href="#testimonials">Testimonials</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="gallery.php">Gallery</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-2">

@@ -212,9 +212,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Down payment = 30% + transport
                 $down_payment = round(($service['price'] * 0.3) + $transportFee, 2);
 
-                // Upload proof to Cloudinary (optional)
+                // Upload proof to Cloudinary (required)
                 $proofFile = null;
-                if (!empty($_FILES['payment_proof']['name'])) {
+                if (empty($_FILES['payment_proof']['name'])) {
+                    $error = "❌ Payment proof is required. Please upload a screenshot or photo of your payment receipt.";
+                } else {
                     $uploadResult = uploadToCloudinary('payment_proof');
                     if ($uploadResult['success']) {
                         $proofFile = $uploadResult['url'];
@@ -369,7 +371,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                         " : "") . "
                                         
-                                        <div class='detail-row'>
+                                        <div class='detail-row'></div>
                                             <span class='label'>Payment Status:</span>
                                             <span class='value'><span class='status-badge status-pending'>Pending Verification</span></span>
                                         </div>
@@ -651,6 +653,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let selectedStylist = document.getElementById("assigned_staff_id").value;
         if (!selectedStylist) {
           alert("Please select a stylist before proceeding.");
+          return;
+        }
+      }
+      
+      // Validation for step 4 (payment proof upload) - before moving to review
+      if (step === 5) {
+        let paymentProof = document.getElementById("payment_proof");
+        if (!paymentProof.files || paymentProof.files.length === 0) {
+          alert("Please upload proof of payment before proceeding to review.");
+          paymentProof.focus();
           return;
         }
       }
@@ -1138,9 +1150,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         <div class="mb-4">
                             <label for="payment_proof" class="form-label fw-bold">
-                                <i class="bi bi-image"></i> Upload Proof of Payment <span class="text-muted">(Optional)</span>
+                                <i class="bi bi-image"></i> Upload Proof of Payment *
                             </label>
-                            <input type="file" class="form-control" name="payment_proof" id="payment_proof" accept="image/*">
+                            <input type="file" class="form-control" name="payment_proof" id="payment_proof" accept="image/*" required>
                             <div class="form-text">
                                 <i class="bi bi-info-circle"></i> 
                                 Upload a screenshot or photo of your payment receipt. Accepted formats: JPG, PNG, GIF

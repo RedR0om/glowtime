@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if ($id <= 0 || !in_array($action, ['verify', 'reject'], true)) {
+    if ($id <= 0 || !in_array($action, ['verify', 'reject', 'update_stylist'], true)) {
         header('Location: appointments.php?error=' . urlencode('Invalid request.'));
         exit;
     }
@@ -186,6 +186,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             header('Location: appointments.php?success=' . urlencode('Payment rejected and booking cancelled.'));
+            exit;
+        }
+
+        if ($action === 'update_stylist') {
+            $new_staff_id = $_POST['new_staff_id'] ?? null;
+            
+            if (empty($new_staff_id)) {
+                header('Location: appointments.php?error=' . urlencode('Please select a stylist.'));
+                exit;
+            }
+
+            // Get appointment details for conflict check
+            $stmt = pdo()->prepare("SELECT start_at, end_at, assigned_staff_id FROM appointments WHERE id = ?");
+            $stmt->execute([$id]);
+            $appointment = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$appointment) {
+                header('Location: appointments.php?error=' . urlencode('Appointment not found.'));
+                exit;
+            }
+
+            // Check for conflicts with the new stylist (excluding current appointment)
+            $check = pdo()->prepare("SELECT COUNT(*) FROM appointments 
+                WHERE assigned_staff_id = ?
+                AND id != ?
+                AND status IN ('pending','confirmed')
+                AND (
+                    (start_at < ? AND end_at > ?) 
+                    OR (start_at < ? AND end_at > ?) 
+                    OR (start_at >= ? AND end_at <= ?)
+                )");
+            $check->execute([
+                $new_staff_id, 
+                $id,
+                $appointment['end_at'], 
+                $appointment['start_at'], 
+                $appointment['start_at'], 
+                $appointment['end_at'], 
+                $appointment['start_at'], 
+                $appointment['end_at']
+            ]);
+            $conflict = $check->fetchColumn();
+
+            if ($conflict > 0) {
+                header('Location: appointments.php?error=' . urlencode('The selected stylist is already booked for this time slot. Please choose another stylist.'));
+                exit;
+            }
+
+            // Get old stylist name
+            $oldStylistName = 'Not Assigned';
+            if ($appointment['assigned_staff_id']) {
+                $stmtOld = pdo()->prepare("SELECT staff_name FROM staff WHERE staff_id = ?");
+                $stmtOld->execute([$appointment['assigned_staff_id']]);
+                $oldStylist = $stmtOld->fetch(PDO::FETCH_ASSOC);
+                if ($oldStylist) {
+                    $oldStylistName = $oldStylist['staff_name'];
+                }
+            }
+
+            // Get new stylist name
+            $newStylistName = 'Not Assigned';
+            $stmtNew = pdo()->prepare("SELECT staff_name FROM staff WHERE staff_id = ?");
+            $stmtNew->execute([$new_staff_id]);
+            $newStylist = $stmtNew->fetch(PDO::FETCH_ASSOC);
+            if ($newStylist) {
+                $newStylistName = $newStylist['staff_name'];
+            }
+
+            // Update the stylist
+            $stmt = pdo()->prepare("UPDATE appointments SET assigned_staff_id = ? WHERE id = ?");
+            $stmt->execute([$new_staff_id, $id]);
+
+            // Fetch client info for email
+            $stmt2 = pdo()->prepare("SELECT u.email, u.name, a.booking_ref, a.start_at, s.name AS service_name 
+                FROM appointments a 
+                JOIN users u ON a.client_id = u.id 
+                JOIN services s ON a.service_id = s.id
+                WHERE a.id = ?");
+            $stmt2->execute([$id]);
+            $row = $stmt2->fetch(PDO::FETCH_ASSOC);
+            
+            if ($row) {
+                $emailResult = sendEmail(
+                    $row['email'],
+                    "Stylist Changed - " . h($row['booking_ref']) . " | Glowtime Salon",
+                    "<p>Hello <strong>" . h($row['name']) . "</strong>,</p>
+                     <p>We wanted to inform you that there has been a change to your appointment.</p>
+                     <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #e91e63;'>
+                        <p><strong>Booking Reference:</strong> " . h($row['booking_ref']) . "</p>
+                        <p><strong>Service:</strong> " . h($row['service_name']) . "</p>
+                        <p><strong>Date & Time:</strong> " . date("F d, Y h:i A", strtotime($row['start_at'])) . "</p>
+                        <p><strong>Previous Stylist:</strong> " . h($oldStylistName) . "</p>
+                        <p><strong>New Stylist:</strong> <strong style='color: #e91e63;'>" . h($newStylistName) . "</strong></p>
+                     </div>
+                     <p>Your appointment details remain the same, only the assigned stylist has been updated.</p>
+                     <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+                     <p>✨ We look forward to serving you!</p>
+                     <p><strong>Glowtime Salon Team</strong></p>"
+                );
+                if (!$emailResult['success']) {
+                    error_log("Failed to send stylist change email: " . $emailResult['error']);
+                }
+            }
+
+            header('Location: appointments.php?success=' . urlencode('Stylist updated successfully. Client has been notified.'));
             exit;
         }
     } catch (PDOException $e) {
@@ -625,8 +730,8 @@ function statusBadgeClass($status) {
 
                             <!-- Actions -->
                             <td class="text-center">
-                                <?php if (($a['payment_status'] ?? '') === 'pending'): ?>
-                                    <div class="btn-group" role="group">
+                                <div class="d-flex gap-2 justify-content-center" role="group">
+                                    <?php if (($a['payment_status'] ?? '') === 'pending'): ?>
                                         <form method="post" style="display:inline;" onsubmit="return confirm('Verify this payment?')">
                                             <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
                                             <input type="hidden" name="action" value="verify">
@@ -642,10 +747,18 @@ function statusBadgeClass($status) {
                                                 <i class="bi bi-x-circle"></i>
                                             </button>
                                         </form>
-                                    </div>
-                                <?php else: ?>
-                                    <span class="text-muted">—</span>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                    
+                                    <button type="button" class="btn btn-sm btn-info edit-stylist-btn" 
+                                            data-appointment-id="<?= (int)$a['id'] ?>"
+                                            data-booking-ref="<?= h($a['booking_ref'] ?? '') ?>"
+                                            data-current-stylist="<?= h($a['stylist_name'] ?? 'Not Assigned') ?>"
+                                            data-current-staff-id="<?= h($a['assigned_staff_id'] ?? '') ?>"
+                                            data-appointment-date="<?= !empty($a['start_at']) ? date('Y-m-d', strtotime($a['start_at'])) : '' ?>"
+                                            title="Edit Stylist">
+                                        <i class="bi bi-person-gear"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -954,7 +1067,131 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Quick filter buttons are working via href links, no need for additional JS
+    
+    // Attach event listeners to edit stylist buttons
+    document.querySelectorAll('.edit-stylist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            const bookingRef = this.getAttribute('data-booking-ref');
+            const currentStylist = this.getAttribute('data-current-stylist');
+            const currentStaffId = this.getAttribute('data-current-staff-id');
+            const appointmentDate = this.getAttribute('data-appointment-date');
+            openEditStylistModal(appointmentId, bookingRef, currentStylist, currentStaffId, appointmentDate);
+        });
+    });
 });
+
+// Edit Stylist Modal Functions
+function openEditStylistModal(appointmentId, bookingRef, currentStylist, currentStaffId, appointmentDate) {
+    document.getElementById('editStylistAppointmentId').value = appointmentId;
+    document.getElementById('editStylistBookingRef').textContent = bookingRef;
+    document.getElementById('editStylistCurrentStylist').textContent = currentStylist;
+    document.getElementById('editStylistAppointmentDate').value = appointmentDate;
+    
+    // Load available stylists for the appointment date
+    if (appointmentDate) {
+        loadEditStylistOptions(appointmentDate, currentStaffId);
+    } else {
+        document.getElementById('editStylistSelect').innerHTML = '<option value="">Error: No date available</option>';
+    }
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('editStylistModal'));
+    modal.show();
+}
+
+function loadEditStylistOptions(date, excludeStaffId) {
+    fetch(`get_available_stylists.php?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const stylistSelect = document.getElementById('editStylistSelect');
+            stylistSelect.innerHTML = '<option value="">-- Choose a Stylist --</option>';
+            
+            if (data.error) {
+                console.error('API Error:', data.error);
+                stylistSelect.innerHTML += '<option value="" disabled>Error loading stylists</option>';
+                return;
+            }
+            
+            const stylists = Array.isArray(data) ? data : (data.data || []);
+            
+            if (stylists.length === 0) {
+                stylistSelect.innerHTML += '<option value="" disabled>No stylists available on this date</option>';
+            } else {
+                stylists.forEach(stylist => {
+                    const option = document.createElement('option');
+                    option.value = stylist.staff_id;
+                    option.textContent = stylist.staff_name;
+                    // Pre-select current stylist if available
+                    if (stylist.staff_id === excludeStaffId) {
+                        option.selected = true;
+                    }
+                    stylistSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error loading stylists:', err);
+            document.getElementById('editStylistSelect').innerHTML = '<option value="">Error loading stylists</option>';
+        });
+}
 </script>
+
+<!-- Edit Stylist Modal -->
+<div class="modal fade" id="editStylistModal" tabindex="-1" aria-labelledby="editStylistModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStylistModalLabel">
+                    <i class="bi bi-person-badge"></i> Edit Stylist Assignment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="editStylistForm" onsubmit="return confirm('Update the stylist for this appointment? The client will be notified via email.')">
+                <input type="hidden" name="action" value="update_stylist">
+                <input type="hidden" name="id" id="editStylistAppointmentId">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Changing the stylist will send an email notification to the client.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Booking Reference:</label>
+                        <div class="form-control-plaintext" id="editStylistBookingRef">-</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Stylist:</label>
+                        <div class="form-control-plaintext" id="editStylistCurrentStylist">-</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editStylistSelect" class="form-label fw-bold">
+                            <i class="bi bi-person-badge"></i> Select New Stylist *
+                        </label>
+                        <select class="form-select" name="new_staff_id" id="editStylistSelect" required>
+                            <option value="">-- Loading stylists... --</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> 
+                            Only stylists available on the appointment date are shown. The system will check for scheduling conflicts.
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="editStylistAppointmentDate">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-salon">
+                        <i class="bi bi-check-circle"></i> Update Stylist
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <?php include 'inc/footer_sidebar.php'; ?>

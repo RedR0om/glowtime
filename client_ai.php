@@ -61,9 +61,11 @@ function generateAIResponse($message, $context) {
         'how do i book',
         'booking process',
         'schedule appointment',
-        'what hair style would suit my face shape',
-        'what hair style suits me',
-        'hair style would suit',
+        'what hairstyle suits oval face shape',
+        'hairstyle suits oval face',
+        'hair style suits oval',
+        'recommend hair color for tan skin',
+        'hair color for tan skin',
         'what hair color would look good on me',
         'recommend hair color',
         'hair color would look good',
@@ -233,12 +235,22 @@ function getQuickQuestionResponse($message) {
         return "I'd be happy to help you book an appointment! You can use our online booking system to choose your preferred service, date, and time. Would you like me to guide you through the process?";
     }
     
-    // Hair style questions
+    // Hair style questions - specifically for oval face shape
+    if (strpos($message, 'hairstyle') !== false && strpos($message, 'oval') !== false && strpos($message, 'face') !== false) {
+        return "## Perfect Hairstyles for Oval Face Shape\n\nGreat news! **Oval face shapes** are the most versatile and can pull off almost any hairstyle! Here are some **stunning options**:\n\n- **Long Layers**: Soft, face-framing layers that enhance your natural bone structure\n- **Blunt Bob**: A classic chin-length bob that highlights your balanced features\n- **Pixie Cut**: A bold, short cut that showcases your symmetrical face\n- **Side-Swept Bangs**: Adds dimension and complements your oval shape perfectly\n- **Long Waves**: Effortless, romantic waves that frame your face beautifully\n\nSince you have an oval face, you're lucky - **almost any style will look amazing on you**! Book a consultation to find your perfect match!";
+    }
+    
+    // Hair color questions - specifically for tan skin
+    if (strpos($message, 'hair color') !== false && strpos($message, 'tan skin') !== false) {
+        return "## Perfect Hair Colors for Tan Skin\n\nFor **tan skin tones**, here are some **gorgeous color recommendations** that will make you glow:\n\n- **Warm Caramel Highlights**: Adds dimension and warmth that complements your skin tone\n- **Honey Blonde**: A natural, sun-kissed look that enhances your golden undertones\n- **Rich Chocolate Brown**: Deep, luxurious brown that creates beautiful contrast\n- **Copper or Auburn**: Warm, vibrant tones that bring out the warmth in your skin\n- **Balayage with Warm Tones**: Natural-looking highlights that blend seamlessly\n\n**Avoid**: Very cool, ashy tones as they can wash out tan skin. Stick with **warm, golden, or caramel tones** for the best results!\n\nBook a color consultation with our specialists to find your perfect shade!";
+    }
+    
+    // General hair style questions
     if (strpos($message, 'hair') !== false && (strpos($message, 'style') !== false || strpos($message, 'suit') !== false)) {
         return "## Perfect Hairstyle Consultation\n\nFor the perfect hairstyle, I'd recommend consulting with one of our **professional stylists** who can assess:\n\n- Your face shape\n- Hair texture and type\n- Lifestyle and maintenance preferences\n- Current hair condition\n\nWe offer **complimentary consultations** to help you find the ideal look!";
     }
     
-    // Hair color questions
+    // General hair color questions
     if (strpos($message, 'hair') !== false && (strpos($message, 'color') !== false || strpos($message, 'highlight') !== false)) {
         return "## Hair Color Consultation\n\nOur **color specialists** can help you find the perfect shade! We offer complimentary color consultations where we'll analyze:\n\n- Your skin tone and undertones\n- Eye color and natural features\n- Natural hair color and texture\n- Lifestyle and maintenance preferences\n\nWe'll recommend the most **flattering options** for your unique features!";
     }
@@ -432,11 +444,11 @@ include 'inc/header_sidebar.php';
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What hair style would suit my face shape?">
-                        What hair style suits me?
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What hairstyle suits oval face shape?">
+                        What hairstyle suits oval face shape?
                     </button>
-                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="What hair color would look good on me?">
-                        Recommend hair color
+                    <button class="btn btn-outline-salon btn-sm quick-question" data-question="Recommend hair color for tan skin.">
+                        Recommend hair color for tan skin.
                     </button>
                     <button class="btn btn-outline-salon btn-sm quick-question" data-question="What skincare routine should I follow?">
                         Skincare advice

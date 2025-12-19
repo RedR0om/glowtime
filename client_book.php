@@ -431,6 +431,276 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include 'inc/header_sidebar.php'; ?>
 
   <style>
+/* Mobile-optimized Booking Page Styles */
+@media (max-width: 768px) {
+    /* Main content - Full width on mobile with no side padding */
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding: 1rem 0 !important;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile header - Full width with no side margins */
+    .mobile-header {
+        margin: -1rem 0 1rem 0 !important;
+        padding: 1rem 1rem !important;
+        gap: 0.5rem;
+    }
+    
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Page Header - Smaller on mobile */
+    .page-header {
+        padding: 0 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .page-header p {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Hide Back to Dashboard button on mobile */
+    .page-header .btn {
+        display: none !important;
+    }
+    
+    /* Cards - Full width with internal padding only */
+    .card {
+        border-radius: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Step Indicator - Smaller on mobile */
+    .step-indicator {
+        margin-bottom: 1.5rem !important;
+        padding: 0 1rem;
+    }
+    
+    .step-indicator .step-circle {
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+        font-size: 0.875rem !important;
+        margin: 0 5px !important;
+        color: #666 !important;
+    }
+    
+    .step-indicator .step-circle.active {
+        color: white !important;
+        background: var(--salon-primary, #e91e63) !important;
+    }
+    
+    .step-indicator .step-circle.completed {
+        color: white !important;
+        background: #198754 !important;
+    }
+    
+    /* Step Header - Smaller on mobile */
+    .step-header h4 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step-header p {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Form labels - Smaller on mobile */
+    .form-label {
+        font-size: 0.95rem !important;
+    }
+    
+    .form-label.fw-bold {
+        font-size: 1rem !important;
+    }
+    
+    /* Service cards - Stack on mobile */
+    .service-booking-card {
+        margin-bottom: 1rem;
+    }
+    
+    .service-booking-card .card-title {
+        font-size: 1rem !important;
+    }
+    
+    /* Booking type cards - Stack on mobile */
+    .booking-type-card {
+        margin-bottom: 1rem;
+    }
+    
+    .booking-type-card h6 {
+        font-size: 1rem !important;
+    }
+    
+    .booking-type-card .fs-1 {
+        font-size: 2.5rem !important;
+    }
+    
+    /* Form controls - Better touch targets */
+    .form-control,
+    .form-select {
+        font-size: 16px !important; /* Prevents iOS zoom */
+        padding: 0.875rem 1rem;
+        min-height: 48px;
+    }
+    
+    .form-control-lg {
+        font-size: 16px !important;
+        padding: 1rem 1.25rem;
+        min-height: 52px;
+    }
+    
+    /* Buttons - Smaller on mobile */
+    .btn-lg {
+        padding: 0.875rem 1.25rem !important;
+        font-size: 1rem !important;
+        min-height: 48px;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+    }
+    
+    /* Payment info cards */
+    .payment-info-card,
+    .payment-methods-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .payment-info-card .fs-4 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Review card */
+    .review-card {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .review-item {
+        padding: 0.5rem 0 !important;
+        font-size: 0.9rem;
+    }
+    
+    .review-label {
+        font-size: 0.875rem !important;
+    }
+    
+    .review-value {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Alerts - Better spacing */
+    .alert {
+        margin: 0 1rem 1rem 1rem !important;
+        font-size: 0.9rem;
+    }
+    
+    /* Step content padding */
+    .step {
+        padding: 0 0.5rem;
+    }
+    
+    /* Row padding for cards */
+    .row.justify-content-center {
+        margin: 0 !important;
+        padding: 0 0.5rem !important;
+    }
+    
+    .row:not(.justify-content-center) {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .row > [class*="col-"] {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+    
+    /* Service cards container - Reduce padding */
+    #serviceCards {
+        margin-left: -0.25rem !important;
+        margin-right: -0.25rem !important;
+    }
+    
+    #serviceCards > [class*="col-"] {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+    
+    /* Main card body - Reduce padding */
+    .card-body {
+        padding: 1rem 0.75rem !important;
+    }
+    
+    /* Selected service info */
+    #selectedServiceInfo {
+        margin: 1rem 0 !important;
+        font-size: 0.9rem;
+    }
+    
+    /* Form text - Smaller */
+    .form-text {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Badges - Smaller */
+    .badge {
+        font-size: 0.75rem !important;
+        padding: 0.35rem 0.65rem;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 991px) {
+    .step-indicator .step-circle {
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        margin: 0 8px;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    /* Reduce padding on tablet */
+    .step {
+        padding: 0 0.75rem;
+    }
+    
+    .row.justify-content-center {
+        padding: 0 0.75rem !important;
+    }
+    
+    .card-body {
+        padding: 1.25rem 1rem !important;
+    }
+    
+    #serviceCards {
+        margin-left: -0.5rem !important;
+        margin-right: -0.5rem !important;
+    }
+    
+    #serviceCards > [class*="col-"] {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
     .step { display:none; }
     .step.active { display:block; }
     .step-indicator { text-align:center; margin-bottom:20px; }
@@ -444,16 +714,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     margin:0 10px; 
     font-weight:bold;
     border: 2px solid #dee2e6;
+    color: #666;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+    z-index: 1;
 }
 .step-indicator .step-circle.active { 
-    background: var(--salon-primary); 
-    color:white; 
-    border-color: var(--salon-primary);
+    background: var(--salon-primary, #e91e63) !important; 
+    color: white !important; 
+    border-color: var(--salon-primary, #e91e63) !important;
 }
 .step-indicator .step-circle.completed { 
-    background: #198754; 
-    color:white; 
-    border-color: #198754;
+    background: #198754 !important; 
+    color: white !important; 
+    border-color: #198754 !important;
 }
 .review-box { 
     background: var(--salon-light); 
@@ -851,14 +1126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </script>
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h1 class="h2 text-salon mb-0">
             <i class="bi bi-calendar-plus"></i> Book Appointment
         </h1>
         <p class="text-muted mb-0">Schedule your salon visit in 5 easy steps</p>
     </div>
-    <div>
+    <div class="d-none d-md-block">
         <a href="client_dashboard.php" class="btn btn-outline-salon">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>

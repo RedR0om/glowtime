@@ -18,6 +18,17 @@
     
     <!-- Custom JS -->
     <script>
+        // Close sidebar function (for mobile)
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            }
+        }
+        
         // Sidebar toggle functionality
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -25,8 +36,13 @@
             
             if (window.innerWidth <= 768) {
                 // Mobile behavior
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
+                const isOpen = sidebar.classList.contains('show');
+                if (isOpen) {
+                    closeSidebar();
+                } else {
+                    sidebar.classList.add('show');
+                    overlay.classList.add('show');
+                }
             } else {
                 // Desktop behavior
                 sidebar.classList.toggle('collapsed');
@@ -35,8 +51,33 @@
         }
         
         // Close sidebar when clicking on overlay
-        document.getElementById('sidebarOverlay').addEventListener('click', function() {
-            toggleSidebar();
+        const overlay = document.getElementById('sidebarOverlay');
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeSidebar();
+            });
+        }
+        
+        // Close sidebar when clicking nav links on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        // Small delay to allow navigation
+                        setTimeout(closeSidebar, 100);
+                    }
+                });
+            });
+        });
+        
+        // Close sidebar with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                closeSidebar();
+            }
         });
         
         // Handle window resize
@@ -47,7 +88,9 @@
             if (window.innerWidth > 768) {
                 // Desktop: remove mobile classes
                 sidebar.classList.remove('show');
-                overlay.classList.remove('show');
+                if (overlay) {
+                    overlay.classList.remove('show');
+                }
             }
         });
         

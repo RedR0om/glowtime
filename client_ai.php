@@ -336,7 +336,7 @@ include 'inc/header_sidebar.php';
 ?>
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h1 class="h2 text-salon mb-0">
             <i class="bi bi-robot"></i> AI Beauty Assistant
@@ -344,7 +344,7 @@ include 'inc/header_sidebar.php';
         <p class="text-muted mb-0">Get personalized beauty recommendations and advice</p>
     </div>
     <div>
-        <a href="client_dashboard.php" class="btn btn-outline-salon me-2">
+        <a href="client_dashboard.php" class="btn btn-outline-salon me-2 d-none d-md-inline-block">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
         <a href="client_book.php" class="btn btn-salon">
@@ -533,6 +533,252 @@ include 'inc/header_sidebar.php';
     --salon-primary-dark: #d14672;
 }
 
+/* Mobile-optimized AI Assistant Page Styles */
+@media (max-width: 768px) {
+    /* Main content - Full width on mobile with minimal side padding */
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding: 1rem 0.5rem !important;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile header - Full width with minimal side padding */
+    .mobile-header {
+        margin: -1rem -0.5rem 1rem -0.5rem !important;
+        padding: 1rem 0.5rem !important;
+        gap: 0.5rem;
+    }
+    
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Page Header - Smaller on mobile with minimal side padding */
+    .page-header {
+        padding: 0 0.5rem !important;
+        margin-bottom: 1.5rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .page-header p {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Hide Back to Dashboard button on mobile, show Book Service only */
+    .page-header .btn-outline-salon {
+        display: none !important;
+    }
+    
+    .page-header .btn-salon {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+    
+    /* Cards - Full width with side spacing */
+    .card {
+        border-radius: 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Row - Stack columns on mobile with minimal side padding */
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 0 0.5rem !important;
+    }
+    
+    .row > [class*="col-"] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Chat card - Full width, adjust height */
+    .chat-card {
+        height: auto !important;
+        min-height: 500px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chat-container {
+        max-height: 400px !important;
+        padding: 0.75rem !important;
+    }
+    
+    /* Message bubbles - Wider on mobile */
+    .message-bubble {
+        max-width: 85% !important;
+        font-size: 0.95rem;
+    }
+    
+    .message-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1rem !important;
+    }
+    
+    .ai-message .message-avatar {
+        margin-right: 0.5rem !important;
+    }
+    
+    .user-message .message-avatar {
+        margin-left: 0.5rem !important;
+    }
+    
+    /* Chat form - Better spacing */
+    .chat-form {
+        padding: 0 0.5rem 1rem 0.5rem;
+    }
+    
+    .chat-form .input-group {
+        flex-wrap: nowrap;
+    }
+    
+    .chat-form .form-control {
+        font-size: 16px !important; /* Prevents iOS zoom */
+        padding: 0.875rem 1rem;
+        min-height: 48px;
+    }
+    
+    .chat-form .btn {
+        padding: 0.875rem 1.25rem;
+        min-height: 48px;
+        min-width: 80px;
+    }
+    
+    /* Quick Questions card - Full width */
+    .col-lg-4 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Quick question buttons - Full width */
+    .quick-question {
+        width: 100% !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem !important;
+        text-align: left !important;
+        white-space: normal !important;
+    }
+    
+    /* Tip items - Better spacing */
+    .tip-item {
+        margin-bottom: 1rem !important;
+    }
+    
+    .tip-icon {
+        width: 28px !important;
+        font-size: 1.1rem !important;
+    }
+    
+    .tip-content strong {
+        font-size: 0.95rem !important;
+    }
+    
+    .tip-content p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Card headers - Smaller */
+    .card-header h5,
+    .card-header h6 {
+        font-size: 1rem !important;
+    }
+    
+    /* Card body padding */
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    /* Markdown content - Smaller on mobile */
+    .markdown-content h1 {
+        font-size: 1.1rem !important;
+    }
+    
+    .markdown-content h2 {
+        font-size: 1rem !important;
+    }
+    
+    .markdown-content h3 {
+        font-size: 0.95rem !important;
+    }
+    
+    .markdown-content p {
+        font-size: 0.9rem !important;
+        line-height: 1.6;
+    }
+    
+    .markdown-content ul,
+    .markdown-content ol {
+        padding-left: 1.25rem !important;
+    }
+    
+    .markdown-content li {
+        font-size: 0.9rem !important;
+        margin: 0.5rem 0;
+    }
+    
+    /* Alerts - Better spacing */
+    .alert {
+        margin: 0 0.5rem 1rem 0.5rem !important;
+        font-size: 0.9rem;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 991px) {
+    .main-content {
+        padding: 1rem 1rem !important;
+    }
+    
+    .mobile-header {
+        margin: -1rem -1rem 1rem -1rem !important;
+        padding: 1rem 1rem !important;
+    }
+    
+    .container-fluid {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .page-header {
+        padding: 0 1rem !important;
+    }
+    
+    .row {
+        padding: 0 1rem !important;
+    }
+    
+    .chat-card {
+        height: 600px;
+    }
+    
+    .chat-container {
+        max-height: 400px;
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+    }
+}
+
 .chat-card {
     height: 650px;
     display: flex;
@@ -678,19 +924,7 @@ include 'inc/header_sidebar.php';
     line-height: 1.5;
 }
 
-@media (max-width: 768px) {
-    .message-bubble {
-        max-width: 250px;
-    }
-    
-    .chat-card {
-        height: 500px;
-    }
-    
-    .chat-container {
-        max-height: 350px;
-    }
-}
+/* Mobile styles are now in the main mobile section above */
 </style>
 
 <script>

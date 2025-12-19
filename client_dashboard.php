@@ -59,8 +59,310 @@ try {
 include 'inc/header_sidebar.php';
 ?>
 
+<style>
+/* Mobile-optimized Dashboard Styles */
+@media (max-width: 768px) {
+    /* Ensure full width and proper scaling */
+    html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
+    body {
+        font-size: 16px;
+        width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Main content - Full width on mobile with no side padding */
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding: 1rem 0 !important;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile header - Full width with no side margins */
+    .mobile-header {
+        margin: -1rem 0 1rem 0 !important;
+        padding: 1rem 1rem !important;
+        gap: 0.5rem;
+    }
+    
+    /* Mobile header buttons - Proper spacing */
+    .mobile-header .btn {
+        margin: 0;
+        padding: 0.5rem 0.75rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .mobile-header .dropdown {
+        margin: 0;
+    }
+    
+    .mobile-header > div {
+        margin: 0;
+    }
+    
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Cards - Full width with internal padding only */
+    .card {
+        border-radius: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Dashboard header - Add side padding */
+    .dashboard-header {
+        padding: 0 1rem !important;
+    }
+    
+    /* Statistics cards row - Add side padding */
+    .row.mb-4:first-of-type {
+        padding: 0 1rem !important;
+    }
+    
+    /* Quick Actions & Recommendations row - Add side padding */
+    .row.mb-4:nth-of-type(2) {
+        padding: 0 1rem !important;
+    }
+    
+    /* Style Recommendations row - Add side padding */
+    .row.mb-4:nth-of-type(3) {
+        padding: 0 1rem !important;
+    }
+    
+    /* Recent Appointments row - Add side padding */
+    .row:last-of-type {
+        padding: 0 1rem !important;
+    }
+    
+    /* Dashboard Header - Stack on mobile */
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+        width: 100%;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem;
+        width: 100%;
+    }
+    
+    .dashboard-header p {
+        font-size: 0.9rem;
+    }
+    
+    .dashboard-header .btn {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+    
+    /* Statistics Cards - Full width on mobile */
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100%;
+    }
+    
+    .row > [class*="col-"] {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    .dashboard-card {
+        margin-bottom: 1rem !important;
+        padding: 1.5rem 1rem !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .dashboard-card .card-icon {
+        font-size: 2.5rem !important;
+        margin-bottom: 0.75rem;
+    }
+    
+    .dashboard-card h5 {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-card h2 {
+        font-size: 2rem !important;
+    }
+    
+    /* Quick Actions - Stack on mobile */
+    .quick-actions-card .row {
+        margin: 0;
+    }
+    
+    .quick-actions-card .col-md-6 {
+        margin-bottom: 1rem;
+        padding: 0 0.5rem;
+        width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .quick-actions-card .btn {
+        padding: 1.25rem 1rem !important;
+        font-size: 0.95rem;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .quick-actions-card .btn i {
+        font-size: 2rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Recommended Service Card - Full width on mobile */
+    .recommended-card {
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+    
+    .col-md-4,
+    .col-md-8 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Style Tips - Stack on mobile */
+    .style-tips-card .col-md-4 {
+        margin-bottom: 1rem;
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Recent Appointments Table - Make it mobile-friendly */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+        min-width: 600px;
+        width: 100%;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    /* Card headers - Better mobile spacing */
+    .card-header {
+        padding: 1rem 1rem !important;
+    }
+    
+    .card-header h5,
+    .card-header h6 {
+        font-size: 1rem !important;
+    }
+    
+    /* Card body padding */
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    /* Cards - Full width */
+    .card {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Badges - Slightly smaller on mobile */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+    
+    /* Buttons in cards */
+    .card .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        min-height: 40px;
+    }
+    
+    /* Remove margins on mobile */
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Better spacing for empty state */
+    .text-center.py-5 {
+        padding: 2rem 1rem !important;
+    }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        font-size: 16px !important; /* Prevents iOS zoom */
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 991px) {
+    .dashboard-card {
+        padding: 1.75rem 1.25rem;
+    }
+    
+    .quick-actions-card .btn {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
 <!-- Dashboard Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 dashboard-header">
     <div>
         <h1 class="h2 text-salon mb-0">
             <i class="bi bi-house"></i> My Dashboard
@@ -109,7 +411,7 @@ include 'inc/header_sidebar.php';
 <div class="row mb-4">
     <!-- Quick Actions -->
     <div class="col-md-8">
-        <div class="card">
+        <div class="card quick-actions-card">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-lightning"></i> Quick Actions
@@ -142,7 +444,7 @@ include 'inc/header_sidebar.php';
     
     <!-- Recommended Service -->
     <div class="col-md-4">
-        <div class="card">
+        <div class="card recommended-card">
             <div class="card-header">
                 <h6 class="mb-0">
                     <i class="bi bi-star"></i> Recommended for You
@@ -179,7 +481,7 @@ include 'inc/header_sidebar.php';
 <?php if (!empty($styleRecommendations['items'])): ?>
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card">
+        <div class="card style-tips-card">
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-lightbulb"></i> Style Tips for You
@@ -262,13 +564,22 @@ include 'inc/header_sidebar.php';
                                         <td>
                                             <?php 
                                                 $status = $appointment['status'] ?? 'pending';
-                                                $badgeClass = match($status) {
-                                                    'confirmed' => 'bg-success',
-                                                    'cancelled' => 'bg-danger',
-                                                    'completed' => 'bg-info',
-                                                    'pending' => 'bg-warning',
-                                                    default => 'bg-secondary'
-                                                };
+                                                switch($status) {
+                                                    case 'confirmed':
+                                                        $badgeClass = 'bg-success';
+                                                        break;
+                                                    case 'cancelled':
+                                                        $badgeClass = 'bg-danger';
+                                                        break;
+                                                    case 'completed':
+                                                        $badgeClass = 'bg-info';
+                                                        break;
+                                                    case 'pending':
+                                                        $badgeClass = 'bg-warning';
+                                                        break;
+                                                    default:
+                                                        $badgeClass = 'bg-secondary';
+                                                }
                                             ?>
                                             <span class="badge <?= $badgeClass ?> text-white">
                                                 <?= ucfirst(htmlspecialchars($status)) ?>
@@ -277,12 +588,19 @@ include 'inc/header_sidebar.php';
                                         <td>
                                             <?php 
                                                 $paymentStatus = $appointment['payment_status'] ?? 'pending';
-                                                $paymentBadgeClass = match($paymentStatus) {
-                                                    'verified' => 'bg-success',
-                                                    'rejected' => 'bg-danger',
-                                                    'pending' => 'bg-warning',
-                                                    default => 'bg-secondary'
-                                                };
+                                                switch($paymentStatus) {
+                                                    case 'verified':
+                                                        $paymentBadgeClass = 'bg-success';
+                                                        break;
+                                                    case 'rejected':
+                                                        $paymentBadgeClass = 'bg-danger';
+                                                        break;
+                                                    case 'pending':
+                                                        $paymentBadgeClass = 'bg-warning';
+                                                        break;
+                                                    default:
+                                                        $paymentBadgeClass = 'bg-secondary';
+                                                }
                                             ?>
                                             <span class="badge <?= $paymentBadgeClass ?> text-white">
                                                 <?= ucfirst(htmlspecialchars($paymentStatus)) ?>

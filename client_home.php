@@ -27,6 +27,7 @@ $completed = $completed->fetchColumn();
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to Glowtime</title>
   <!-- Dynamic Color System -->
   <link href="css/dynamic-color-system.css" rel="stylesheet">

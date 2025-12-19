@@ -30,6 +30,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <nav class="sidebar" id="sidebar">
         <!-- Brand -->
         <div class="sidebar-brand">
+            <button class="sidebar-close-btn d-md-none" onclick="closeSidebar()" aria-label="Close menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <h4><i class="bi bi-flower1"></i> Glowtime</h4>
             <p>Salon Management</p>
         </div>

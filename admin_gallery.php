@@ -317,20 +317,54 @@ $categories = ['Hair', 'Nails', 'Make up', 'Spa', 'Facial', 'Other'];
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
-    /* Main content - Full width on mobile with minimal side padding */
+    /* Main content - Full width on mobile with minimal side padding - Account for fixed header */
     .main-content {
         width: 100% !important;
         max-width: 100% !important;
         margin-left: 0 !important;
-        padding: 1rem 0.5rem !important;
+        padding: calc(60px + 1rem) 0.5rem 1rem 0.5rem !important; /* Account for fixed header (60px header + 1rem spacing) */
         box-sizing: border-box;
     }
     
-    /* Mobile header - Full width with minimal side padding */
+    /* Mobile header - Full width with minimal side padding - FIXED POSITION */
     .mobile-header {
-        margin: -1rem -0.5rem 1rem -0.5rem !important;
-        padding: 1rem 0.5rem !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 1050 !important;
+        margin: 0 !important;
+        padding: 0.75rem 0.5rem !important; /* Consistent padding */
         gap: 0.5rem;
+        background: var(--user-card-bg, #fff) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+        min-height: 60px !important; /* Consistent height */
+        max-height: 60px !important; /* Consistent height */
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    /* Mobile header buttons - Consistent sizing */
+    .mobile-header .btn {
+        margin: 0 !important;
+        padding: 0.5rem 0.75rem !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .mobile-header .dropdown-toggle {
+        padding: 0.5rem 0.75rem !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        font-size: 0.875rem !important;
     }
     
     .container-fluid {

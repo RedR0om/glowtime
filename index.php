@@ -314,6 +314,7 @@ if (isset($_SESSION['user_id'])) {
             background: linear-gradient(135deg, var(--salon-light), var(--salon-secondary));
             color: #333;
             min-height: 100vh;
+            padding-top: 100px; /* Account for fixed navbar */
             display: flex;
             align-items: center;
             position: relative;
@@ -603,6 +604,23 @@ if (isset($_SESSION['user_id'])) {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 1050 !important;
+        }
+        
+        /* Add padding to body to account for fixed navbar */
+        body {
+            padding-top: 76px; /* Approximate navbar height */
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px; /* Slightly smaller on mobile */
+            }
         }
         
         .brand-text {

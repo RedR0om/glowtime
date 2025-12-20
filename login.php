@@ -37,9 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <style>
 /* Mobile-optimized Login Page Styles */
 @media (max-width: 768px) {
-    /* Full width container with no side padding on mobile */
+    /* Full width container with no side padding on mobile - Account for fixed header */
     .login-container {
-        padding: 0.5rem 0;
+        padding: calc(60px + 1rem) 0 0.5rem 0 !important; /* Account for fixed header (60px) */
         margin: 0;
         min-height: calc(100vh - 120px);
     }
@@ -243,13 +243,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="row justify-content-center w-100">
         <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
             <div class="card fade-in login-card">
-                <div class="card-header text-center">
-                    <h3 class="mb-0">
-                        <i class="bi bi-box-arrow-in-right"></i> Welcome Back
-                    </h3>
-                    <p class="mb-0 mt-2 opacity-75">Sign in to your account</p>
-                </div>
-                <div class="card-body p-4">
+            <div class="card-header text-center">
+                <h3 class="mb-0">
+                    <i class="bi bi-box-arrow-in-right"></i> Welcome Back
+                </h3>
+                <p class="mb-0 mt-2 opacity-75">Sign in to your account</p>
+            </div>
+            <div class="card-body p-4">
                 <?php if ($error): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
@@ -289,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="bi bi-person-plus"></i> Create Account
                     </a>
                 </div>
-            </div>
+                </div>
             </div>
         </div>
         
@@ -310,11 +310,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <small class="text-muted d-block">john@example.com</small>
                         <small class="text-muted d-block">admin123</small>
                     </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 
 <?php include 'inc/footer_sidebar.php'; ?>

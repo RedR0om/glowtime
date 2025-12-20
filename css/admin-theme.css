@@ -163,10 +163,13 @@ body {
     background: var(--salon-card-bg);
     box-shadow: var(--salon-shadow);
     padding: 1rem;
-    margin: -2rem -2rem 2rem -2rem;
-    position: sticky;
+    margin: 0;
+    position: fixed;
     top: 0;
-    z-index: 998;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1050;
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -175,6 +178,43 @@ body {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        min-height: 60px !important;
+        max-height: 60px !important;
+        padding: 0.75rem 0.5rem !important; /* Consistent padding */
+    }
+    
+    /* Add padding to main content to account for fixed header */
+    .main-content {
+        padding-top: calc(60px + 1rem) !important; /* Account for fixed header (60px) + spacing */
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Mobile header buttons - Consistent sizing */
+    .mobile-header .btn {
+        padding: 0.5rem 0.75rem !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .mobile-header .dropdown-toggle {
+        padding: 0.5rem 0.75rem !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .container-fluid {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Ensure body doesn't overlap with fixed header */
+    body {
+        padding-top: 0 !important;
     }
 }
 
@@ -182,6 +222,10 @@ body {
 .navbar-salon {
     background: var(--salon-gradient-primary) !important;
     box-shadow: var(--salon-shadow);
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1050 !important;
+    width: 100% !important;
 }
 
 .navbar-brand {

@@ -364,6 +364,39 @@ if (isset($_SESSION['user_id'])) {
             margin-left: auto;
             margin-right: auto;
         }
+        
+        .hero-btn-primary {
+            background-color: var(--salon-primary) !important;
+            border-color: var(--salon-primary) !important;
+            color: white !important;
+            border-radius: 50px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3) !important;
+        }
+        
+        .hero-btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4) !important;
+            color: white !important;
+        }
+        
+        .hero-btn-secondary {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            color: var(--salon-primary) !important;
+            border-radius: 50px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .hero-btn-secondary:hover {
+            background-color: white !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+            color: var(--salon-primary) !important;
+        }
 
         .hero-image-grid {
             position: relative;
@@ -437,6 +470,15 @@ if (isset($_SESSION['user_id'])) {
         .service-card:hover {
             transform: translateY(-10px);
             box-shadow: var(--salon-shadow-hover);
+        }
+        
+        /* Mobile: Prevent hover effects on touch devices */
+        @media (max-width: 768px) {
+            .service-card:hover,
+            .service-card-lg:hover,
+            .testimonial-card:hover {
+                transform: none;
+            }
         }
         
         .service-image {
@@ -632,18 +674,339 @@ if (isset($_SESSION['user_id'])) {
             transform: translateY(-2px);
         }
         
-        /* Responsive */
+        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
+            /* General Container Spacing */
+            .container {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            
+            /* Hero Section - Mobile */
+            .hero-section {
+                padding: 100px 1rem 60px !important;
+                min-height: auto !important;
+            }
+            
+            .hero-section .container {
+                padding: 0 1rem !important;
+            }
+            
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 2rem !important;
+                line-height: 1.3 !important;
+                margin-bottom: 1rem !important;
             }
             
             .hero-subtitle {
-                font-size: 1.2rem;
+                font-size: 1rem !important;
+                margin-bottom: 1.5rem !important;
+                padding: 0 0.5rem;
+            }
+            
+            .hero-content .d-flex {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+            
+            .hero-content .btn-lg {
+                width: 100% !important;
+                font-size: 0.95rem !important;
+                padding: 0.75rem 1.5rem !important;
             }
 
             .floral-decoration {
                 display: none;
+            }
+            
+            /* Navigation - Mobile */
+            .navbar-landing {
+                padding: 0.75rem 1rem !important;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem !important;
+            }
+            
+            .navbar-nav .btn {
+                width: 100% !important;
+                margin-top: 0.5rem !important;
+            }
+            
+            /* Services Section - Mobile */
+            #services {
+                padding: 3rem 1rem !important;
+            }
+            
+            #services .container {
+                padding: 0 1rem !important;
+            }
+            
+            #services .row.g-5 {
+                --bs-gutter-y: 1.5rem;
+                --bs-gutter-x: 0;
+                margin: 0 !important;
+            }
+            
+            #services .col-md-6,
+            #services .col-lg-5 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-bottom: 1.5rem !important;
+            }
+            
+            #services .text-center h2 {
+                font-size: 2rem !important;
+            }
+            
+            #services .text-center .lead {
+                font-size: 0.95rem !important;
+                padding: 0 0.5rem;
+            }
+            
+            .service-card-lg {
+                margin-bottom: 1.5rem !important;
+                border-radius: 16px !important;
+            }
+            
+            .service-card-lg img {
+                height: 200px !important;
+            }
+            
+            .service-card-lg .card-body {
+                padding: 1.25rem !important;
+            }
+            
+            .service-card-lg .card-body p {
+                font-size: 0.9rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .service-card-lg .list-unstyled {
+                font-size: 0.9rem !important;
+            }
+            
+            /* About Section - Mobile */
+            #about {
+                padding: 3rem 1rem !important;
+            }
+            
+            #about .container {
+                padding: 0 1rem !important;
+            }
+            
+            #about .row.g-5 {
+                --bs-gutter-y: 1.5rem;
+                --bs-gutter-x: 0;
+                margin: 0 !important;
+            }
+            
+            #about .col-lg-6 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-bottom: 1.5rem !important;
+            }
+            
+            #about h2 {
+                font-size: 2rem !important;
+            }
+            
+            #about .lead {
+                font-size: 0.95rem !important;
+            }
+            
+            #about p {
+                font-size: 0.9rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            #about .row.text-center .col-4 h3 {
+                font-size: 1.5rem !important;
+            }
+            
+            #about .row.text-center .col-4 .text-muted {
+                font-size: 0.85rem !important;
+            }
+            
+            /* Testimonials - Mobile */
+            #testimonials {
+                padding: 3rem 1rem !important;
+            }
+            
+            #testimonials .container {
+                padding: 0 1rem !important;
+            }
+            
+            #testimonials .row.g-4 {
+                --bs-gutter-y: 1.5rem;
+                --bs-gutter-x: 0;
+                margin: 0 !important;
+            }
+            
+            #testimonials .col-md-6,
+            #testimonials .col-lg-4 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-bottom: 1.5rem !important;
+            }
+            
+            #testimonials h2 {
+                font-size: 2rem !important;
+            }
+            
+            #testimonials .lead {
+                font-size: 0.95rem !important;
+                padding: 0 0.5rem;
+            }
+            
+            .testimonial-card {
+                margin-bottom: 1.5rem !important;
+                border-radius: 16px !important;
+            }
+            
+            .testimonial-card .card-body {
+                padding: 1.5rem !important;
+            }
+            
+            .testimonial-card img {
+                width: 60px !important;
+                height: 60px !important;
+            }
+            
+            .testimonial-card p {
+                font-size: 0.9rem !important;
+            }
+            
+            /* Contact Section - Mobile */
+            #contact {
+                padding: 3rem 1rem !important;
+            }
+            
+            #contact .container {
+                padding: 0 1rem !important;
+            }
+            
+            #contact .row.g-5 {
+                --bs-gutter-y: 1.5rem;
+                --bs-gutter-x: 0;
+                margin: 0 !important;
+            }
+            
+            #contact .col-lg-6 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-bottom: 1.5rem !important;
+            }
+            
+            #contact h2 {
+                font-size: 2rem !important;
+            }
+            
+            #contact .lead {
+                font-size: 0.95rem !important;
+                padding: 0 0.5rem;
+            }
+            
+            #contact .card {
+                margin-bottom: 1.5rem !important;
+                border-radius: 16px !important;
+            }
+            
+            #contact .card-body {
+                padding: 1.5rem !important;
+            }
+            
+            #contact .contact-item {
+                margin-bottom: 1.5rem !important;
+            }
+            
+            #contact .contact-icon {
+                width: 45px !important;
+                height: 45px !important;
+                font-size: 1rem !important;
+            }
+            
+            #contact h5 {
+                font-size: 1rem !important;
+            }
+            
+            #contact .text-muted {
+                font-size: 0.9rem !important;
+            }
+            
+            #contact iframe {
+                height: 250px !important;
+            }
+            
+            #contact .btn {
+                font-size: 0.9rem !important;
+                padding: 0.75rem 1.5rem !important;
+            }
+            
+            /* Footer - Mobile */
+            footer {
+                padding: 3rem 1rem !important;
+            }
+            
+            footer .container {
+                padding: 0 1rem !important;
+            }
+            
+            footer .row.g-4 {
+                --bs-gutter-y: 2rem;
+                --bs-gutter-x: 0;
+                margin: 0 !important;
+            }
+            
+            footer .col-lg-4,
+            footer .col-lg-2,
+            footer .col-md-6 {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-bottom: 2rem !important;
+            }
+            
+            footer h5 {
+                font-size: 1.1rem !important;
+            }
+            
+            footer p,
+            footer .text-muted {
+                font-size: 0.9rem !important;
+            }
+            
+            footer .social-links a {
+                width: 35px !important;
+                height: 35px !important;
+                line-height: 35px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+        
+        /* Tablet Responsive Styles */
+        @media (min-width: 769px) and (max-width: 992px) {
+            .hero-section {
+                padding: 120px 1.5rem 80px !important;
+            }
+            
+            .container {
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
+            
+            #services,
+            #about,
+            #testimonials,
+            #contact {
+                padding: 4rem 1.5rem !important;
+            }
+            
+            .service-card-lg {
+                margin-bottom: 2rem !important;
+            }
+            
+            footer {
+                padding: 4rem 1.5rem !important;
             }
         }
         
@@ -914,7 +1277,7 @@ if (isset($_SESSION['user_id'])) {
             }
         }
         
-        /* Mobile Responsive */
+        /* Mobile Responsive - Chatbot */
         @media (max-width: 768px) {
             .chatbot-container {
                 bottom: 15px;
@@ -922,14 +1285,75 @@ if (isset($_SESSION['user_id'])) {
             }
             
             .chatbot-window {
-                width: 320px;
-                height: 450px;
+                width: calc(100vw - 2rem) !important;
+                max-width: 400px !important;
+                height: calc(100vh - 120px) !important;
+                max-height: 600px !important;
+                bottom: 80px !important;
+                right: 1rem !important;
+                left: auto !important;
+                border-radius: 20px !important;
             }
             
             .chatbot-toggle {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
+                width: 56px;
+                height: 56px;
+                font-size: 1.3rem;
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .chatbot-header {
+                padding: 1rem !important;
+            }
+            
+            .chatbot-header h6 {
+                font-size: 0.95rem !important;
+            }
+            
+            .chatbot-header small {
+                font-size: 0.8rem !important;
+            }
+            
+            .chatbot-body {
+                padding: 1rem !important;
+            }
+            
+            .chatbot-messages {
+                max-height: calc(100vh - 280px) !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .message-bubble {
+                max-width: 85% !important;
+                font-size: 0.9rem !important;
+                padding: 0.75rem 1rem !important;
+            }
+            
+            .chatbot-quick-questions {
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .quick-btn {
+                font-size: 0.85rem !important;
+                padding: 0.6rem 1rem !important;
+                width: 100% !important;
+            }
+            
+            .chatbot-input {
+                padding-top: 1rem !important;
+            }
+            
+            .chatbot-input .form-control {
+                font-size: 0.9rem !important;
+                padding: 0.65rem 1rem !important;
+            }
+            
+            .chatbot-input .btn {
+                width: 45px !important;
+                height: 45px !important;
             }
         }
     </style>
@@ -988,12 +1412,12 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <h1 class="hero-title">Blossom Into Your Most Beautiful Self</h1>
                         <p class="hero-subtitle">Experience luxury beauty services in a serene, feminine atmosphere. Where elegance meets expertise.</p>
-                        <div class="d-flex flex-wrap gap-3 justify-content-center">
-                            <a href="register.php" class="btn btn-lg px-5" style="background-color: var(--salon-primary); border-color: var(--salon-primary); color: white;">
-                                Book Your Appointment
+                        <div class="d-flex flex-wrap gap-3 justify-content-center hero-buttons">
+                            <a href="register.php" class="btn btn-lg px-5 hero-btn-primary">
+                                <i class="bi bi-calendar-plus"></i> Book Your Appointment
                             </a>
-                            <a href="login.php" class="btn btn-lg px-5" style="background-color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.5); color: var(--salon-primary); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
-                                Explore Services
+                            <a href="login.php" class="btn btn-lg px-5 hero-btn-secondary">
+                                <i class="bi bi-scissors"></i> Explore Services
                             </a>
                         </div>
                 </div>

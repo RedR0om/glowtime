@@ -66,7 +66,7 @@ include 'inc/header_sidebar.php';
 ?>
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h1 class="h2 text-salon mb-0">
             <i class="bi bi-clock-history"></i> My Appointments
@@ -74,7 +74,7 @@ include 'inc/header_sidebar.php';
         <p class="text-muted mb-0">View and manage your appointment history</p>
     </div>
     <div>
-        <a href="client_dashboard.php" class="btn btn-outline-salon me-2">
+        <a href="client_dashboard.php" class="btn btn-outline-salon me-2 d-none d-md-inline-block">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
         <a href="client_book.php" class="btn btn-salon">
@@ -133,21 +133,42 @@ include 'inc/header_sidebar.php';
                         $isPast = strtotime($a['start_at']) < time();
                         
                         // Status badge classes
-                        $statusClass = match($a['status']) {
-                            'confirmed' => 'bg-success',
-                            'pending' => 'bg-warning',
-                            'cancelled' => 'bg-danger',
-                            'completed' => 'bg-info',
-                            default => 'bg-secondary'
-                        };
+                        $statusClass = '';
+                        switch ($a['status']) {
+                            case 'confirmed':
+                                $statusClass = 'bg-success';
+                                break;
+                            case 'pending':
+                                $statusClass = 'bg-warning';
+                                break;
+                            case 'cancelled':
+                                $statusClass = 'bg-danger';
+                                break;
+                            case 'completed':
+                                $statusClass = 'bg-info';
+                                break;
+                            default:
+                                $statusClass = 'bg-secondary';
+                                break;
+                        }
                         
                         // Payment status badge
-                        $paymentClass = match($a['payment_status'] ?? 'pending') {
-                            'verified' => 'bg-success',
-                            'rejected' => 'bg-danger',
-                            'pending' => 'bg-warning',
-                            default => 'bg-secondary'
-                        };
+                        $paymentStatus = $a['payment_status'] ?? 'pending';
+                        $paymentClass = '';
+                        switch ($paymentStatus) {
+                            case 'verified':
+                                $paymentClass = 'bg-success';
+                                break;
+                            case 'rejected':
+                                $paymentClass = 'bg-danger';
+                                break;
+                            case 'pending':
+                                $paymentClass = 'bg-warning';
+                                break;
+                            default:
+                                $paymentClass = 'bg-secondary';
+                                break;
+                        }
                     ?>
                     <div class="card mb-4 appointment-card">
                         <div class="card-body">
@@ -324,9 +345,213 @@ include 'inc/header_sidebar.php';
     opacity: 0.3;
 }
 
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .timeline-container::before {
         display: none;
+    }
+    
+    /* Main content - Full width on mobile with minimal side padding */
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding: 1rem 0.5rem !important;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile header - Full width with minimal side padding */
+    .mobile-header {
+        margin: -1rem -0.5rem 1rem -0.5rem !important;
+        padding: 1rem 0.5rem !important;
+        gap: 0.5rem;
+    }
+    
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Page Header - Smaller on mobile with minimal side padding */
+    .page-header {
+        padding: 0 0.5rem !important;
+        margin-bottom: 1.5rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem !important;
+    }
+    
+    .page-header .btn {
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1rem !important;
+        width: 100% !important;
+        justify-content: center;
+    }
+    
+    /* Row - Stack columns on mobile with minimal side padding */
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 0 0.5rem !important;
+    }
+    
+    /* Alerts - Better spacing */
+    .alert {
+        margin: 0 0.5rem 1rem 0.5rem !important;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem !important;
+    }
+    
+    /* Appointment Cards - Full width on mobile */
+    .appointment-card {
+        margin-bottom: 1rem !important;
+        border-radius: 12px !important;
+    }
+    
+    .appointment-card .card-body {
+        padding: 1rem !important;
+    }
+    
+    /* Appointment Icon - Smaller on mobile */
+    .appointment-icon {
+        width: 50px !important;
+        height: 50px !important;
+        margin-right: 0.75rem !important;
+    }
+    
+    .appointment-icon i {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Card Title - Smaller on mobile */
+    .appointment-card .card-title {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Appointment Details - Stack on mobile */
+    .appointment-card .row {
+        flex-direction: column !important;
+    }
+    
+    .appointment-card .col-md-8,
+    .appointment-card .col-md-4 {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    .appointment-card .col-md-4 {
+        margin-top: 1rem !important;
+        text-align: left !important;
+    }
+    
+    /* Badges - Smaller on mobile */
+    .appointment-card .badge {
+        font-size: 0.75rem !important;
+        padding: 0.35rem 0.65rem !important;
+        margin-right: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        display: inline-block !important;
+    }
+    
+    /* Buttons - Full width on mobile */
+    .appointment-card .btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+    
+    /* QR Code Card - Better spacing */
+    .card.mb-4 {
+        margin: 0 0.5rem 1rem 0.5rem !important;
+        border-radius: 12px !important;
+    }
+    
+    .card.mb-4 .card-body {
+        padding: 1rem !important;
+    }
+    
+    .card.mb-4 img {
+        max-width: 200px !important;
+    }
+    
+    /* Empty State - Better spacing */
+    .text-center.py-5 {
+        padding: 2rem 0.5rem !important;
+    }
+    
+    .text-center.py-5 .display-1 {
+        font-size: 3rem !important;
+    }
+    
+    .text-center.py-5 h4 {
+        font-size: 1.25rem !important;
+    }
+    
+    .text-center.py-5 p {
+        font-size: 0.9rem !important;
+    }
+    
+    .text-center.py-5 .btn-lg {
+        font-size: 1rem !important;
+        padding: 0.75rem 1.5rem !important;
+        width: 100% !important;
+        max-width: 300px !important;
+    }
+    
+    /* Modal - Better on mobile */
+    .modal-dialog {
+        margin: 0.5rem !important;
+    }
+    
+    .modal-content {
+        border-radius: 12px !important;
+    }
+    
+    .modal-body img {
+        max-width: 200px !important;
+    }
+}
+
+/* Tablet Responsive Styles */
+@media (min-width: 769px) and (max-width: 992px) {
+    .main-content {
+        padding: 1rem 0.75rem !important;
+    }
+    
+    .container-fluid {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    
+    .page-header {
+        padding: 0 0.75rem !important;
+    }
+    
+    .row {
+        padding: 0 0.75rem !important;
+    }
+    
+    .alert {
+        margin: 0 0.75rem 1rem 0.75rem !important;
+    }
+    
+    .card.mb-4 {
+        margin: 0 0.75rem 1rem 0.75rem !important;
     }
 }
 </style>

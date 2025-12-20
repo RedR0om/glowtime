@@ -33,8 +33,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <button class="sidebar-close-btn d-md-none" onclick="closeSidebar()" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
-            <h4><i class="bi bi-flower1"></i> Glowtime</h4>
-            <p>Salon Management</p>
+            <a href="index.php" class="text-decoration-none" style="color: inherit;">
+                <h4><i class="bi bi-flower1"></i> Glowtime</h4>
+                <p>Salon Management</p>
+            </a>
         </div>
         
         <!-- Navigation -->
@@ -156,9 +158,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <button class="btn btn-outline-salon" onclick="toggleSidebar()" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
-            <div class="fw-bold text-salon">
+            <a href="index.php" class="fw-bold text-salon text-decoration-none" style="color: inherit;">
                 <i class="bi bi-flower1"></i> Glowtime
-            </div>
+            </a>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <div class="dropdown">
                     <button class="btn btn-outline-salon btn-sm dropdown-toggle" data-bs-toggle="dropdown">

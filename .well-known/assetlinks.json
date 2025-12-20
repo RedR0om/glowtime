@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kelvind.glowtime",
+      "sha256_cert_fingerprints": [
+        "58528725abf24e5851353c6c15b210bd7f831c441674dc652105ee98189ce910"
+      ]
+    }
+  }
+]
+

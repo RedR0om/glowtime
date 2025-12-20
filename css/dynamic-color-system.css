@@ -247,6 +247,16 @@ body {
     font-size: 1.2rem;
 }
 
+.sidebar-brand a {
+    display: block;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.sidebar-brand a:hover {
+    opacity: 0.8;
+}
+
 .sidebar-brand h4 {
     margin: 0;
     font-weight: 700;
@@ -419,6 +429,19 @@ body {
         min-height: 44px !important;
         max-height: 44px !important;
         font-size: 0.875rem !important;
+    }
+    
+    /* Mobile header Glowtime link - Make it clickable */
+    .mobile-header a {
+        transition: opacity 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .mobile-header a:hover {
+        opacity: 0.8;
     }
     
     .container-fluid {

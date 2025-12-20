@@ -106,13 +106,21 @@ function uploadQrToCloudinary($binaryContent, $bookingRef) {
  * @return array Returns array with metadata including Cloudinary URL or error message.
  */
 function generate_booking_qr($bookingRef) {
+    // Use smart fallback redirect page
+    // QR codes point to redirect.php which tries to open the app first,
+    // then falls back to web invoice if app is not installed
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
-        $baseUrl = "https://glowtime.ct.ws/invoice.php";
+        $baseUrl = "https://glowtime.ct.ws/redirect.php";
     } else {
-        $baseUrl = "http://glowtime.test/invoice.php";
+        $baseUrl = "http://glowtime.test/redirect.php";
     }
 
     $qrTargetUrl = $baseUrl . '?ref=' . urlencode($bookingRef);
+    
+    // Keep web URL as fallback (for reference)
+    $webUrl = (defined('ENVIRONMENT') && ENVIRONMENT === 'production') 
+        ? "https://glowtime.ct.ws/invoice.php?ref=" . urlencode($bookingRef)
+        : "http://glowtime.test/invoice.php?ref=" . urlencode($bookingRef);
 
     $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrTargetUrl);
 
@@ -158,7 +166,8 @@ function generate_booking_qr($bookingRef) {
         'success' => true,
         'url'    => $uploadResult['url'],
         'download_name' => $bookingRef . '.png',
-        'target_url'    => $qrTargetUrl,
+        'target_url'    => $qrTargetUrl, // Smart fallback: redirect.php?ref=... (tries app first, then web)
+        'web_url' => $webUrl, // Direct web invoice URL for reference
         'error' => '',
     ];
 }
